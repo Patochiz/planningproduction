@@ -989,7 +989,7 @@ body:has(.planning-container) .fiche {
 .card-header {
     display: flex;
     flex-direction: column;
-    margin-bottom: 8px;
+    margin-bottom: 0px;
     gap: 6px;
 }
 
