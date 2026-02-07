@@ -1120,7 +1120,9 @@ body:has(.planning-container) .fiche {
     padding-right: 8px;
 }
 
-.card-grid-col-b .card-grid-cell:last-child {
+.card-grid-col-b .card-grid-cell:last-child,
+.card-grid-col-b .card-grid-cell:last-child .card-label,
+.card-grid-col-b .card-grid-cell:last-child .card-value {
     color: magenta;
 }
 
