@@ -936,7 +936,7 @@ body:has(.planning-container) .fiche {
 .kanban-card {
     background: white;
     border-radius: 6px;
-    padding: 12px;
+    padding: 2px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     cursor: grab;
     transition: all 0.2s;
@@ -989,7 +989,7 @@ body:has(.planning-container) .fiche {
 .card-header {
     display: flex;
     flex-direction: column;
-    margin-bottom: 8px;
+    margin-bottom: 0px;
     gap: 6px;
 }
 
@@ -1118,6 +1118,13 @@ body:has(.planning-container) .fiche {
     flex: 1;
     padding-left: 8px;
     padding-right: 8px;
+}
+
+.card-grid-col-b .card-grid-cell:last-child,
+.card-grid-col-b .card-grid-cell:last-child .card-label,
+.card-grid-col-b .card-grid-cell:last-child .card-value {
+    color: magenta;
+    font-weight: bold;
 }
 
 .card-grid-col-c {

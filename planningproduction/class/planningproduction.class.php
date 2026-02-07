@@ -172,11 +172,11 @@ class PlanningProduction extends CommonObject
         $sql .= "p.ref as produit_ref, p.label as produit_label, ";
         $sql .= "u.short_label as unite, ";
         // Extrafields de commande
-        $sql .= "c_ef.version, c_ef.ref_chantierfp, c_ef.delai_liv, c_ef.statut_ar, ";
+        $sql .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, ";
         // Extrafields de ligne
         $sql .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
-        // NOUVEAU : Sous-requête pour récupérer le ref_commande du service ID=361
-        $sql .= "(SELECT cd_titre_ef.ref_commande ";
+        // Sous-requête pour récupérer le ref_chantier du service (ID=361) directement au-dessus
+        $sql .= "(SELECT cd_titre_ef.ref_chantier ";
         $sql .= " FROM ".MAIN_DB_PREFIX."commandedet cd_titre ";
         $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_titre_ef ON cd_titre.rowid = cd_titre_ef.fk_object ";
         $sql .= " WHERE cd_titre.fk_commande = cd.fk_commande ";
@@ -184,8 +184,8 @@ class PlanningProduction extends CommonObject
         $sql .= " AND cd_titre.rang < cd.rang ";
         $sql .= " ORDER BY cd_titre.rang DESC ";
         $sql .= " LIMIT 1 ";
-        $sql .= ") as titre_ref_commande ";
-        
+        $sql .= ") as titre_ref_chantier ";
+
         $sql .= "FROM ".MAIN_DB_PREFIX."commande c ";
         $sql .= "INNER JOIN ".MAIN_DB_PREFIX."commandedet cd ON c.rowid = cd.fk_commande ";
         $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON c.fk_soc = s.rowid ";
@@ -240,8 +240,7 @@ class PlanningProduction extends CommonObject
                     'version' => $obj->version ?: 'V1',
                     'client' => $obj->societe_nom,
                     'fk_soc' => $obj->fk_soc,
-                    'ref_chantier' => $obj->ref_chantierfp ?: '-',
-                    'titre_ref_commande' => $obj->titre_ref_commande ?: null, // NOUVEAU
+                    'ref_chantier' => $obj->titre_ref_chantier ?: '-',
                     'delivery' => $delivery_address,
                     'deadline' => $obj->delai_liv ?: '-',
                     'produit' => $obj->produit_label ?: $obj->produit_description,
@@ -254,7 +253,7 @@ class PlanningProduction extends CommonObject
                     'statut_prod' => $obj->statut_prod ?: 'À PRODUIRE',
                     'postlaquage' => $obj->postlaquage
                 );
-                
+
                 $cards[] = $card;
                 $i++;
             }
@@ -376,11 +375,11 @@ class PlanningProduction extends CommonObject
         $sql .= "p.ref as produit_ref, p.label as produit_label, ";
         $sql .= "u.short_label as unite, ";
         // Extrafields de commande
-        $sql .= "c_ef.version, c_ef.ref_chantierfp, c_ef.delai_liv, c_ef.statut_ar, ";
+        $sql .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, ";
         // Extrafields de ligne
         $sql .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
-        // NOUVEAU : Sous-requête pour récupérer le ref_commande du service ID=361
-        $sql .= "(SELECT cd_titre_ef.ref_commande ";
+        // Sous-requête pour récupérer le ref_chantier du service (ID=361) directement au-dessus
+        $sql .= "(SELECT cd_titre_ef.ref_chantier ";
         $sql .= " FROM ".MAIN_DB_PREFIX."commandedet cd_titre ";
         $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_titre_ef ON cd_titre.rowid = cd_titre_ef.fk_object ";
         $sql .= " WHERE cd_titre.fk_commande = cd.fk_commande ";
@@ -388,7 +387,7 @@ class PlanningProduction extends CommonObject
         $sql .= " AND cd_titre.rang < cd.rang ";
         $sql .= " ORDER BY cd_titre.rang DESC ";
         $sql .= " LIMIT 1 ";
-        $sql .= ") as titre_ref_commande ";
+        $sql .= ") as titre_ref_chantier ";
         
         $sql .= "FROM ".MAIN_DB_PREFIX."planningproduction_planning pp ";
         $sql .= "INNER JOIN ".MAIN_DB_PREFIX."commande c ON pp.fk_commande = c.rowid ";
@@ -431,8 +430,7 @@ class PlanningProduction extends CommonObject
                     'commande_ref' => $obj->commande_ref,
                     'version' => $obj->version ?: 'V1',
                     'client' => $obj->societe_nom,
-                    'ref_chantier' => $obj->ref_chantierfp ?: '-',
-                    'titre_ref_commande' => $obj->titre_ref_commande ?: null, // NOUVEAU
+                    'ref_chantier' => $obj->titre_ref_chantier ?: '-',
                     'delivery' => $delivery_address,
                     'deadline' => $obj->delai_liv ?: '-',
                     'produit' => $obj->produit_label ?: $obj->produit_description,

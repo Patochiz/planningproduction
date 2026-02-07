@@ -61,10 +61,10 @@ function generateCardHTML($card, $langs)
     $html .= '<a href="' . $command_link . '" class="card-commande" target="_blank">' . $card['commande_ref'] . '</a> ';
     $html .= 'V' . $card['version'] . ' ';
     $html .= '<a href="' . $client_link . '" class="card-tiers" target="_blank">' . $card['client'] . '</a>';
-    
-    // NOUVEAU : Ajouter le ref_commande du service ID=361 si présent
-    if (!empty($card['titre_ref_commande'])) {
-        $html .= ' / ' . htmlspecialchars($card['titre_ref_commande']);
+
+    // Afficher le ref_chantier du service (ID=361) si présent
+    if (!empty($card['ref_chantier']) && $card['ref_chantier'] !== '-') {
+        $html .= ' / ' . htmlspecialchars($card['ref_chantier']);
     }
     
     $html .= '</div>';
