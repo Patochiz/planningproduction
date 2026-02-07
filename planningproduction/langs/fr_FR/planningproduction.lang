@@ -1,0 +1,297 @@
+# Copyright (C) 2024 Patrick Delcroix
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see https://www.gnu.org/licenses/.
+
+#
+# Generic
+#
+
+# Module label 'ModulePlanningProductionName'
+ModulePlanningProductionName = Planning Production
+# Module description 'ModulePlanningProductionDesc'
+ModulePlanningProductionDesc = Planning de production hybride avec timeline et groupement
+
+#
+# Admin page
+#
+PlanningProductionArea = Zone Planning Production
+PlanningProductionAreaDesc = Zone de gestion du planning de production
+
+#
+# About page
+#
+PlanningProductionAbout = À propos du Planning Production
+PlanningProductionAboutPage = Page à propos du Planning Production
+
+#
+# Page principale
+#
+PlanningProduction = Planning Production
+PlanningProductionNew = Nouveau Planning Production
+PlanningProductionList = Liste des Plannings Production
+PlanningProductionCard = Fiche Planning Production
+
+# Permissions
+Permission543211 = Lire les plannings de production
+Permission543212 = Créer/modifier les plannings de production
+
+# Interface
+PlanningHybride = Planning Hybride
+TimelineGroupement = Timeline + Groupement
+NonPlanifiees = Non Planifiées
+ExportGlobal = Export Global
+Synchroniser = Synchroniser
+Filtrer = Filtrer
+Actualiser = Actualiser
+Valider = Valider
+Export = Export
+NouveauGroupe = Nouveau Groupe
+GlisserCarteIci = Glisser carte ici
+GlisserElementsIci = Glissez vos éléments ici pour les planifier
+Vide = Vide
+Semaine = Semaine
+Elements = éléments
+Groupes = groupes
+
+# Exports
+ExportNonPlanifiees = Export - Éléments Non Planifiées
+ExportATerminer = Export - Éléments À Terminer
+ExportAExpedier = Export - Éléments À Expédier  
+ExportPlanifiees = Export - Éléments Planifiées
+ExportGlobalPlanning = Export Global du Planning
+GenerationExportGlobal = Génération de l'export global...
+ExportElementsNonPlanifies = Export des éléments non planifiés...
+ExportElementsATerminer = Export des éléments à terminer...
+ExportElementsAExpedier = Export des éléments à expédier...
+ExportElementsPlanifies = Export des éléments planifiés...
+ExportSemaine = Export de la semaine
+
+# Colonnes de la carte
+Ref = Ref
+Livraison = Livraison
+Delai = Délai
+Produit = Produit
+Quantite = Qté
+Matiere = Matière
+Version = Version
+Commande = Commande
+Statuts = Statuts
+Groupe = Groupe
+Sem = Sem
+
+# Statuts
+AProdure = À PRODUIRE
+EnCours = EN COURS
+ATerminer = À TERMINER
+BonPourExpedition = BON POUR EXPÉDITION
+
+# Statuts MP
+MPOk = MP OK
+MPAttente = MP en attente
+MPManquante = MP Manquante
+BLAFaire = BL À FAIRE
+ProformaAValider = PROFORMA À VALIDER
+MAJAirtableAFaire = MàJ AIRTABLE à Faire
+
+# Statuts AR
+ARValide = AR VALIDÉ
+ARNonValide = AR NON VALIDÉ
+
+# Badges
+APeindre = À peindre
+PEINDRE = PEINDRE
+
+# Onglets
+ATerminer = À terminer
+AExpedier = À expédier
+CartesParStatut = Cartes par statut
+StatutTerminer = À TERMINER
+StatutExpedier = BON POUR EXPÉDITION
+PanneauOnglets = Panneau à onglets
+ChangerStatut = Changer le statut
+
+# Messages d'export
+AucunElementAAfficher = Aucun élément à afficher dans cette catégorie.
+Resume = Résumé
+TotalElements = Total
+ElementsAuTotal = éléments au total
+NonPlanifiees2 = non planifiées
+ATerminer2 = à terminer
+AExpedier2 = à expédier
+Planifiees2 = planifiées
+Imprimer = Imprimer
+Retour = Retour
+GenereLe = Généré le
+
+# Messages
+PlanningMisAJour = Planning mis à jour
+CarteMiseAJour = Carte mise à jour et sauvegardée
+ElementsAffiches = éléments affichés
+SemaineValidee = Semaine validée
+ExportEnCours = Export en cours...
+SynchronisationEnCours = Synchronisation avec Dolibarr...
+PanneauEtendu = Panneau étendu
+PanneauReduit = Panneau réduit
+CarteDejaPresenteDansNonPlanifiees = Carte déjà présente dans "Non planifiées"
+GroupeCree = Nouveau groupe créé
+DeplacerVers = Déplacé vers
+Deplanifie = Déplanifié
+ReorganiseGroupe = Groupe réorganisé
+GroupeDeplace = Groupe déplacé
+AjouteAuGroupe = Ajouté au groupe
+PlanifieEnSemaine = Planifié en semaine
+ConfirmerSuppression = Cliquez à nouveau sur ❌ pour confirmer la suppression de
+Supprime = supprimé
+DeplanifieEtRemis = déplanifié et remis dans "Non planifiées"
+
+# Erreurs
+ErreurChargementDonnees = Erreur lors du chargement des données
+ErreurSauvegarde = Erreur lors de la sauvegarde
+ErreurPermissions = Vous n'avez pas les permissions pour effectuer cette action
+ErreurModificationInterdite = Modification interdite
+
+# Actions
+Editer = Éditer
+Deplanifier = Déplanifier
+
+# Formulaire d'édition
+EditerCarte = Éditer la carte
+CarteActuelle = Carte actuelle
+Client = Client
+Reference = Référence
+StatutMatierePremiere = Statut Matière Première
+StatutProduction = Statut de production
+PeindreCarte = À peindre
+Selectionner = -- Sélectionner --
+SaisirMatiere = Saisir la matière...
+Oui = Oui
+Non = Non
+Annuler = Annuler
+Sauvegarder = Sauvegarder
+SiFondJauneFluo = Si "Oui", la carte aura un fond jaune fluo
+
+# Filtres
+Annee = Année
+NombreSemaines = Nombre de semaines
+SemaineDepart = Semaine de départ
+TousLesClients = Tous les clients
+Recherche = Recherche
+RechercheReference = Référence, produit, matière...
+SemainePrecedente = Semaine précédente
+SemaineSuivante = Semaine suivante
+
+# Unités
+Metres = ml
+Metres2 = m²
+Unites = u
+
+# Actions
+OuvrirCommande = Ouverture de la commande
+OuvrirFicheCommande = Ouverture de la fiche commande
+OuvrirFicheTiers = Ouverture de la fiche tiers
+
+# Administration
+PlanningProductionSetup = Configuration Planning Production
+PlanningProductionSetupPage = Page de configuration du module Planning Production
+PlanningProductionSetupField = Paramètre de configuration
+PlanningProductionSetupFieldHelp = Description du paramètre
+Settings = Paramètres
+About = À propos
+Parameter = Paramètre
+Value = Valeur
+Version = Version
+Author = Auteur
+Description = Description
+Licence = Licence
+BackToModuleList = Retour à la liste des modules
+
+# Configuration
+Configuration = Configuration
+CardWidth = Largeur des cartes
+CardWidthHelp = Définissez la largeur des cartes en pixels (entre 200 et 500px). La valeur par défaut est 260px.
+ErrorValueMustBeBetween = La valeur doit être comprise entre %s et %s pixels
+
+# Matières Premières
+MatieresPremieresTitle = Matières Premières
+MatieresPremieresDescription = Tableau récapitulatif des stocks de matières premières principales
+CodeMP = Code MP
+Stock = Stock
+CdeEnCours = Cde en cours
+Reste = Reste
+DateMaj = Date MàJ
+Actions = Actions
+MajQuantites = MàJ
+RecalculerCdeEnCours = Recalculer les commandes en cours
+StockInsuffisant = Stock insuffisant
+AucuneMatiereConfiguree = Aucune matière première configurée
+MatierePremiere = Matière première
+AjouterMatierePremiere = Ajouter une matière première
+ModifierMatierePremiere = Modifier une matière première
+SupprimerMatierePremiere = Supprimer une matière première
+ConfirmerSuppressionMatiere = Êtes-vous sûr de vouloir supprimer cette matière première ?
+MatiereAjouteeSuccess = Matière première ajoutée avec succès
+MatiereModifieeSuccess = Matière première mise à jour avec succès
+MatiereSupprimeeSuccess = Matière première supprimée avec succès
+ErreurAjoutMatiere = Erreur lors de l'ajout (code déjà existant ?)
+ErreurModificationMatiere = Erreur lors de la mise à jour (code déjà existant ?)
+ErreurSuppressionMatiere = Erreur lors de la suppression
+StockMisAJour = Stock mis à jour
+CommandesEnCoursRecalculees = Commandes en cours recalculées
+ChargementDonnees = Chargement des données...
+ActualiserDonnees = Actualiser les données
+Fermer = Fermer
+StockInitial = Stock initial
+Ajouter = Ajouter
+Modifier = Modifier
+Supprimer = Supprimer
+Sauver = Sauver
+
+# Réorganisation des matières premières
+GestionOrdreMatieres = Gestion de l'ordre des matières premières
+ReorganiserMatieres = Vous pouvez réorganiser l'ordre des matières premières en les faisant glisser avec la poignée
+GlisserPourReorganiser = Glisser pour réorganiser
+OrdreMisAJour = Ordre mis à jour avec succès
+ErreurMiseAJourOrdre = Erreur lors de la mise à jour de l'ordre
+SauvegardeEnCours = Sauvegarde en cours...
+OrdreSauvegarde = Ordre sauvegardé
+OrdreRestaure = Ordre original restauré
+TestOrdreMatieres = Test - Gestion de l'ordre des Matières Premières
+TestDescription = Ce fichier de test permet de vérifier le bon fonctionnement de la gestion de l'ordre des matières premières
+UtiliserTestApresInstall = Utilisez ce test après avoir installé la mise à jour de la base de données
+LancerTests = Lancer les tests
+ResultatsTests = Résultats des tests
+EtatActuelMatieres = État actuel des matières premières
+Ordre = Ordre
+TestStructureTable = Structure de la table
+TestMethodesClasse = Méthodes de la classe
+TestRecuperationOrdre = Récupération avec ordre
+TestCreationOrdre = Création avec ordre
+TestReorganisation = Test de réorganisation
+ColonneOrdrePresente = Colonne "ordre" présente
+ColonneOrdreManquante = Colonne "ordre" manquante
+ToutesMethodesPresentes = Toutes les méthodes sont présentes
+MethodesManquantes = Méthodes manquantes
+ChampOrdrePresent = Champ ordre présent dans les résultats
+ChampOrdreManquant = Champ ordre manquant
+CreationSuppressionReussies = Création et suppression réussies
+EchecCreation = Échec de la création
+PasAssezMatieresPourTester = Pas assez de matières pour tester
+DeuxMatieresNecessaires = Au moins 2 matières nécessaires
+ReorganisationReussie = Réorganisation réussie
+EchecReorganisation = Échec de la réorganisation
+TesteeAvecXMatieres = Testée avec %s matières
+MatieresRecuperees = %s matières récupérées
+TableNonTrouvee = Table non trouvée
+ErreurRecuperation = Erreur lors de la récupération
+ReponseInattendue = Réponse inattendue du serveur

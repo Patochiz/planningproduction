@@ -1,0 +1,324 @@
+/* CSS dédié aux onglets du planning de production */
+
+/* === STRUCTURE GÉNÉRALE DES ONGLETS === */
+
+.tabs-column {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+/* État réduit avec bande colorée selon l'onglet actif */
+.tabs-column.collapsed {
+    width: 50px !important;
+    min-width: 50px !important;
+}
+
+.tabs-column.collapsed[data-active-tab="unplanned"] {
+    border-right: 10px solid #e74c3c;
+}
+
+.tabs-column.collapsed[data-active-tab="to-finish"] {
+    border-right: 10px solid #f39c12;
+}
+
+.tabs-column.collapsed[data-active-tab="to-ship"] {
+    border-right: 10px solid #27ae60;
+}
+
+/* Animation de la bande colorée */
+.tabs-column {
+    border-right: 10px solid transparent;
+    transition: border-color 0.3s ease, width 0.3s ease, min-width 0.3s ease;
+}
+
+.tabs-column[data-active-tab="unplanned"]:not(.collapsed) {
+    border-right-color: #e74c3c;
+}
+
+.tabs-column[data-active-tab="to-finish"]:not(.collapsed) {
+    border-right-color: #f39c12;
+}
+
+.tabs-column[data-active-tab="to-ship"]:not(.collapsed) {
+    border-right-color: #27ae60;
+}
+
+/* === HEADER DES ONGLETS === */
+
+.tabs-header {
+    background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.tabs-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.tabs-header:hover::before {
+    left: 100%;
+}
+
+.tabs-header-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.tab-total-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 20px;
+    text-align: center;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* === NAVIGATION DES ONGLETS === */
+
+.tabs-nav {
+    background: #2c3e50;
+    display: flex;
+    border-bottom: 3px solid #34495e;
+    position: relative;
+}
+
+.tab-button {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #bdc3c7;
+    padding: 12px 8px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Effet de survol avec vague */
+.tab-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.3s ease;
+}
+
+.tab-button:hover::before {
+    left: 100%;
+}
+
+.tab-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.tab-button.active {
+    background: white;
+    color: #2c3e50;
+    font-weight: 600;
+    transform: none;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3498db, #2980b9);
+    animation: expandLine 0.3s ease-out;
+}
+
+@keyframes expandLine {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+/* Badges des onglets avec couleurs spécifiques */
+.tab-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 9px;
+    font-weight: 600;
+    margin-left: 4px;
+    display: inline-block;
+    min-width: 16px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.tab-button[data-tab="unplanned"] .tab-badge {
+    background: rgba(231, 76, 60, 0.8);
+}
+
+.tab-button[data-tab="to-finish"] .tab-badge {
+    background: rgba(243, 156, 18, 0.8);
+}
+
+.tab-button[data-tab="to-ship"] .tab-badge {
+    background: rgba(39, 174, 96, 0.8);
+}
+
+.tab-button.active .tab-badge {
+    background: #3498db;
+    color: white;
+    animation: bounceIn 0.3s ease-out;
+}
+
+@keyframes bounceIn {
+    0% { transform: scale(0.3); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* === CONTENU DES ONGLETS === */
+
+.tab-content {
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tab-content.active {
+    display: flex;
+    opacity: 1;
+}
+
+.tab-body {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+}
+
+/* Couleurs de fond spécifiques par onglet */
+.tab-content[data-tab="unplanned"] .tab-body {
+    background: linear-gradient(135deg, #fdeaea 0%, #fce4ec 100%);
+    border-left: 4px solid #e74c3c;
+}
+
+.tab-content[data-tab="to-finish"] .tab-body {
+    background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%);
+    border-left: 4px solid #f39c12;
+}
+
+.tab-content[data-tab="to-ship"] .tab-body {
+    background: linear-gradient(135deg, #d5f4e6 0%, #e8f5e8 100%);
+    border-left: 4px solid #27ae60;
+}
+
+/* === STATISTIQUES DES ONGLETS === */
+
+.tabs-stats {
+    padding: 12px 15px;
+    background: rgba(52, 73, 94, 0.05);
+    font-size: 11px;
+    color: #7f8c8d;
+    text-align: center;
+    border-top: 1px solid #dee2e6;
+    position: relative;
+    backdrop-filter: blur(5px);
+}
+
+/* === RESPONSIVE POUR LES ONGLETS === */
+
+@media (max-width: 768px) {
+    .tabs-nav {
+        flex-direction: column;
+        gap: 1px;
+    }
+    
+    .tab-button {
+        flex: none;
+        padding: 8px 12px;
+        text-align: left;
+        font-size: 12px;
+    }
+    
+    .tab-badge {
+        float: right;
+        margin-left: 0;
+        margin-right: 8px;
+    }
+    
+    .tabs-column.collapsed {
+        width: 100% !important;
+        min-width: unset !important;
+        height: 60px;
+        border-right: none;
+        border-bottom: 5px solid #e74c3c;
+    }
+    
+    .tabs-column.collapsed .tabs-header-content {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+/* === ANIMATIONS POUR LES DÉPLACEMENTS === */
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Messages de déplacement de cartes */
+.card-moved-message {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 12px;
+    margin: 5px 0;
+    border-left: 5px solid #1abc9c;
+    animation: slideIn 0.3s ease-out;
+    transition: all 0.3s ease;
+}
+
+.card-moved-message.fade-out {
+    opacity: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+}

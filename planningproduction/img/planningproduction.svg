@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Calendar icon -->
+  <rect x="3" y="4" width="18" height="18" rx="2" fill="#3498db" stroke="#2c3e50" stroke-width="1"/>
+  <rect x="3" y="4" width="18" height="6" rx="2" fill="#2c3e50"/>
+  <rect x="7" y="2" width="2" height="4" fill="#2c3e50"/>
+  <rect x="15" y="2" width="2" height="4" fill="#2c3e50"/>
+  
+  <!-- Planning grid -->
+  <line x1="3" y1="10" x2="21" y2="10" stroke="#34495e" stroke-width="0.5"/>
+  <line x1="3" y1="13" x2="21" y2="13" stroke="#34495e" stroke-width="0.5"/>
+  <line x1="3" y1="16" x2="21" y2="16" stroke="#34495e" stroke-width="0.5"/>
+  <line x1="3" y1="19" x2="21" y2="19" stroke="#34495e" stroke-width="0.5"/>
+  
+  <line x1="9" y1="10" x2="9" y2="22" stroke="#34495e" stroke-width="0.5"/>
+  <line x1="15" y1="10" x2="15" y2="22" stroke="#34495e" stroke-width="0.5"/>
+  
+  <!-- Production elements -->
+  <rect x="5" y="11" width="3" height="1.5" rx="0.3" fill="#e74c3c"/>
+  <rect x="11" y="11" width="3" height="1.5" rx="0.3" fill="#27ae60"/>
+  <rect x="17" y="11" width="3" height="1.5" rx="0.3" fill="#f39c12"/>
+  
+  <rect x="5" y="14" width="2" height="1.5" rx="0.3" fill="#9b59b6"/>
+  <rect x="11" y="17" width="3" height="1.5" rx="0.3" fill="#3498db"/>
+</svg>

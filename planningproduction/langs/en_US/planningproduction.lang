@@ -1,0 +1,156 @@
+# Copyright (C) 2024 Patrick Delcroix
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+#
+# Generic
+#
+
+# Module label 'ModulePlanningProductionName'
+ModulePlanningProductionName = Production Planning
+# Module description 'ModulePlanningProductionDesc'
+ModulePlanningProductionDesc = Hybrid production planning with timeline and grouping
+
+#
+# Admin page
+#
+PlanningProductionArea = Production Planning Area
+PlanningProductionAreaDesc = Production planning management area
+
+#
+# About page
+#
+PlanningProductionAbout = About Production Planning
+PlanningProductionAboutPage = Production Planning about page
+
+#
+# Main page
+#
+PlanningProduction = Production Planning
+PlanningProductionNew = New Production Planning
+PlanningProductionList = Production Planning List
+PlanningProductionCard = Production Planning Card
+
+# Permissions
+Permission543211 = Read production plannings
+Permission543212 = Create/modify production plannings
+
+# Interface
+PlanningHybride = Hybrid Planning
+TimelineGroupement = Timeline + Grouping
+NonPlanifiees = Unplanned
+ExportGlobal = Global Export
+Synchroniser = Synchronize
+Filtrer = Filter
+Actualiser = Refresh
+Valider = Validate
+Export = Export
+NouveauGroupe = New Group
+GlisserCarteIci = Drop card here
+GlisserElementsIci = Drag your elements here to schedule them
+Vide = Empty
+Semaine = Week
+Elements = elements
+Groupes = groups
+
+#
+# Configuration
+#
+Configuration = Configuration
+CardWidth = Card width
+CardWidthHelp = Define the card width in pixels (between 200 and 500px). Default value is 260px.
+ErrorValueMustBeBetween = Value must be between %s and %s pixels
+
+# Administration
+PlanningProductionSetup = Production Planning Setup
+PlanningProductionSetupPage = Production Planning module setup page
+Settings = Settings
+About = About
+Parameter = Parameter
+Value = Value
+BackToModuleList = Back to module list
+
+# Raw Materials
+MatieresPremieresTitle = Raw Materials
+MatieresPremieresDescription = Summary table of main raw materials stocks
+CodeMP = MP Code
+Stock = Stock
+CdeEnCours = Orders in progress
+Reste = Remaining
+DateMaj = Last update
+Actions = Actions
+MajQuantites = Update quantities
+RecalculerCdeEnCours = Recalculate orders in progress
+StockInsuffisant = Insufficient stock
+AucuneMatiereConfiguree = No raw material configured
+MatierePremiere = Raw material
+AjouterMatierePremiere = Add raw material
+ModifierMatierePremiere = Edit raw material
+SupprimerMatierePremiere = Delete raw material
+ConfirmerSuppressionMatiere = Are you sure you want to delete this raw material?
+MatiereAjouteeSuccess = Raw material added successfully
+MatiereModifieeSuccess = Raw material updated successfully
+MatiereSupprimeeSuccess = Raw material deleted successfully
+ErreurAjoutMatiere = Error during addition (code already exists?)
+ErreurModificationMatiere = Error during update (code already exists?)
+ErreurSuppressionMatiere = Error during deletion
+StockMisAJour = Stock updated
+CommandesEnCoursRecalculees = Orders in progress recalculated
+ChargementDonnees = Loading data...
+ActualiserDonnees = Refresh data
+Fermer = Close
+StockInitial = Initial stock
+Ajouter = Add
+Modifier = Edit
+Supprimer = Delete
+Sauver = Save
+
+# Raw materials reordering
+GestionOrdreMatieres = Raw materials order management
+ReorganiserMatieres = You can reorganize the order of raw materials by dragging them with the handle
+GlisserPourReorganiser = Drag to reorganize
+OrdreMisAJour = Order updated successfully
+ErreurMiseAJourOrdre = Error updating order
+SauvegardeEnCours = Saving in progress...
+OrdreSauvegarde = Order saved
+OrdreRestaure = Original order restored
+TestOrdreMatieres = Test - Raw Materials Order Management
+TestDescription = This test file allows you to verify the proper functioning of raw materials order management
+UtiliserTestApresInstall = Use this test after installing the database update
+LancerTests = Run tests
+ResultatsTests = Test results
+EtatActuelMatieres = Current state of raw materials
+Ordre = Order
+TestStructureTable = Table structure
+TestMethodesClasse = Class methods
+TestRecuperationOrdre = Retrieval with order
+TestCreationOrdre = Creation with order
+TestReorganisation = Reorganization test
+ColonneOrdrePresente = "order" column present
+ColonneOrdreManquante = "order" column missing
+ToutesMethodesPresentes = All methods are present
+MethodesManquantes = Missing methods
+ChampOrdrePresent = Order field present in results
+ChampOrdreManquant = Order field missing
+CreationSuppressionReussies = Creation and deletion successful
+EchecCreation = Creation failed
+PasAssezMatieresPourTester = Not enough materials to test
+DeuxMatieresNecessaires = At least 2 materials required
+ReorganisationReussie = Reorganization successful
+EchecReorganisation = Reorganization failed
+TesteeAvecXMatieres = Tested with %s materials
+MatieresRecuperees = %s materials retrieved
+TableNonTrouvee = Table not found
+ErreurRecuperation = Error during retrieval
+ReponseInattendue = Unexpected server response

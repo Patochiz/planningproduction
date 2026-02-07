@@ -1,0 +1,182 @@
+/**
+ * Planification Production - Styles pour le drag & drop des matières premières
+ * Copyright (C) 2024 Patrick Delcroix
+ */
+
+/* Styles pour le drag & drop des matières premières */
+.matieres-table tr[draggable="true"] {
+    transition: all 0.2s ease;
+    cursor: move;
+}
+
+.matieres-table tr[draggable="true"]:hover {
+    background-color: #f0f8ff !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.matieres-table .dragging {
+    opacity: 0.6;
+    background-color: #e3f2fd !important;
+    transform: rotate(2deg);
+}
+
+.matieres-table .drag-over {
+    border-top: 3px solid #2196f3;
+    border-bottom: 3px solid #2196f3;
+}
+
+.matieres-table .drag-placeholder {
+    height: 3px;
+    background: linear-gradient(to right, #2196f3, #64b5f6);
+    margin: 0;
+    padding: 0;
+    animation: pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from {
+        background: linear-gradient(to right, #2196f3, #64b5f6);
+    }
+    to {
+        background: linear-gradient(to right, #64b5f6, #2196f3);
+    }
+}
+
+.drag-handle {
+    cursor: grab;
+    font-size: 14px;
+    color: #999;
+    margin-right: 8px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    display: inline-block;
+}
+
+.drag-handle:hover {
+    color: #2196f3;
+    background-color: #f0f8ff;
+    transform: scale(1.1);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Message d'information */
+.matieres-info {
+    background-color: #e8f4fd;
+    border: 1px solid #bee5eb;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 15px;
+    color: #0c5460;
+}
+
+.matieres-info i {
+    margin-right: 8px;
+}
+
+/* Indicateur de chargement */
+#matieres-loading {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(45deg, #2196f3, #21cbf3);
+    color: white;
+    padding: 12px 18px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    z-index: 9999;
+    font-size: 14px;
+    font-weight: 500;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Messages de feedback */
+.matieres-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 6px;
+    z-index: 9999;
+    font-size: 14px;
+    font-weight: 500;
+    max-width: 350px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: slideIn 0.3s ease-out;
+}
+
+.matieres-message.success {
+    background: linear-gradient(45deg, #4caf50, #66bb6a);
+    color: white;
+}
+
+.matieres-message.error {
+    background: linear-gradient(45deg, #f44336, #ef5350);
+    color: white;
+}
+
+.matieres-message.info {
+    background: linear-gradient(45deg, #2196f3, #42a5f5);
+    color: white;
+}
+
+/* Amélioration de l'apparence du tableau */
+.matieres-table {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.matieres-table .liste_titre {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.matieres-table .liste_titre td {
+    font-weight: 600;
+    padding: 12px;
+}
+
+.matieres-table tr.oddeven {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.matieres-table tr.oddeven td {
+    padding: 10px 12px;
+    vertical-align: middle;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .drag-handle {
+        font-size: 12px;
+        margin-right: 4px;
+    }
+    
+    #matieres-loading,
+    .matieres-message {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .matieres-info {
+        font-size: 14px;
+        padding: 10px;
+    }
+}
