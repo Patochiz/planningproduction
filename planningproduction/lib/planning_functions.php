@@ -47,7 +47,11 @@ function generateCardHTML($card, $langs)
     
     $html = '<div class="kanban-card' . $paint_required . $border_class . '" draggable="true" ';
     $html .= 'data-fk-commande="' . $card['fk_commande'] . '" ';
-    $html .= 'data-fk-commandedet="' . $card['fk_commandedet'] . '">';
+    $html .= 'data-fk-commandedet="' . $card['fk_commandedet'] . '" ';
+    $html .= 'data-produit="' . htmlspecialchars($card['produit'] ?? '') . '" ';
+    $html .= 'data-produit-ref="' . htmlspecialchars($card['produit_ref'] ?? '') . '" ';
+    $html .= 'data-quantity="' . ($card['quantity'] ?? 0) . '" ';
+    $html .= 'data-unite="' . htmlspecialchars($card['unite'] ?? 'u') . '">';
     
     // Header de la carte avec titre et actions
     $html .= '<div class="card-header">';
@@ -244,19 +248,30 @@ function generateWeekHTML($week_num, $year, $week_data, $langs)
  * @param Translate $langs Objet de traduction
  * @return string HTML du groupe
  */
-function generateGroupHTML($group_name, $cards, $week_num, $langs) 
+function generateGroupHTML($group_name, $cards, $week_num, $langs)
 {
-    $card_count = count($cards);
-    
-    $html = '<div class="production-group expanded" data-group="' . htmlspecialchars($group_name) . '">';
-    
+    // Calculer la quantité totale et récupérer le produit_ref du groupe
+    $total_qty = 0;
+    $group_unite = 'u';
+    $group_produit_ref = '';
+    foreach ($cards as $card) {
+        $total_qty += floatval($card['quantity'] ?? 0);
+        if (empty($group_produit_ref) && !empty($card['produit_ref'])) {
+            $group_produit_ref = $card['produit_ref'];
+            $group_unite = $card['unite'] ?? 'u';
+        }
+    }
+
+    $html = '<div class="production-group expanded" data-group="' . htmlspecialchars($group_name) . '" data-produit-ref="' . htmlspecialchars($group_produit_ref) . '">';
+
     // Header du groupe (draggable)
     $html .= '<div class="group-header" draggable="true">';
+    $qty_display = ($total_qty == intval($total_qty)) ? intval($total_qty) : $total_qty;
+    $html .= '<span class="group-count">' . $qty_display . ' ' . htmlspecialchars($group_unite) . '</span>';
     $html .= '<div class="group-title">';
     $html .= '📁 <input type="text" value="' . htmlspecialchars($group_name) . '" placeholder="Nom du groupe">';
     $html .= '</div>';
     $html .= '<div class="group-controls">';
-    $html .= '<span class="group-count">' . $card_count . '</span>';
     $html .= '<button class="group-toggle" onclick="toggleGroup(this)">🔽</button>';
     $html .= '</div>';
     $html .= '</div>';
