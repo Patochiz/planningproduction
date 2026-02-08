@@ -258,16 +258,15 @@ if ($data === false && $type !== 'global') {
     }
     
     /* Colonnes spécifiques - NOUVEL ORDRE */
-    .col-commande { width: 10%; }
-    .col-client { width: 15%; }
+    .col-commande { width: 20%; }
     .col-ref { width: 12%; }
     .col-delai { width: 8%; }
     .col-produit { width: 18%; }
-    .col-matiere { width: 10%; }
+    .col-matiere { width: 12%; }
     .col-qte { width: 8%; }
     .col-livraison { width: 12%; }
-    .col-statuts { width: 15%; }
-    
+    .col-statuts { width: 10%; }
+
     /* Badges de statut */
     .status-badge {
         display: inline-block;
@@ -526,7 +525,6 @@ function renderCardsTable($cards, $langs)
     echo '<thead>';
     echo '<tr>';
     echo '<th class="col-commande">Commande</th>';
-    echo '<th class="col-client">Client</th>';
     echo '<th class="col-ref">Ref.</th>';
     echo '<th class="col-delai">Délai</th>';
     echo '<th class="col-produit">Produit</th>';
@@ -544,22 +542,21 @@ function renderCardsTable($cards, $langs)
         
         echo '<tr' . $paint_class . '>';
         
-        // Commande (numéro + version)
-        $commande_text = htmlspecialchars($card['commande_ref'] ?? '-');
+        // Commande (client + numéro/version)
+        $commande_cell = htmlspecialchars($card['client'] ?? '-');
+        $commande_cell .= '<br><small>' . htmlspecialchars($card['commande_ref'] ?? '-');
         if (!empty($card['version'])) {
-            $commande_text .= ' ' . htmlspecialchars($card['version']);
+            $commande_cell .= ' ' . htmlspecialchars($card['version']);
         }
-        echo '<td>' . $commande_text . '</td>';
-        
-        // Client
-        echo '<td>' . htmlspecialchars($card['client'] ?? '-') . '</td>';
-        
+        $commande_cell .= '</small>';
+        echo '<td>' . $commande_cell . '</td>';
+
         // Référence client
         echo '<td>' . htmlspecialchars($card['ref_chantier'] ?? '-') . '</td>';
-        
+
         // Délai
         echo '<td>' . htmlspecialchars($card['deadline'] ?? '-') . '</td>';
-        
+
         // Produit (référence + description)
         $produit = '';
         if (!empty($card['produit_ref'])) {
@@ -652,7 +649,6 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
         echo '<thead>';
         echo '<tr>';
         echo '<th class="col-commande">Commande</th>';
-        echo '<th class="col-client">Client</th>';
         echo '<th class="col-ref">Ref.</th>';
         echo '<th class="col-delai">Délai</th>';
         echo '<th class="col-produit">Produit</th>';
@@ -677,7 +673,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
             }
             $qty_display = ($group_total_qty == intval($group_total_qty)) ? intval($group_total_qty) : $group_total_qty;
 
-            echo '<tr><td colspan="9" class="group-separator"><span class="group-qty-badge">' . $qty_display . ' ' . htmlspecialchars($group_unite) . '</span>📁 ' . htmlspecialchars($group_name) . '</td></tr>';
+            echo '<tr><td colspan="8" class="group-separator"><span class="group-qty-badge">' . $qty_display . ' ' . htmlspecialchars($group_unite) . '</span>📁 ' . htmlspecialchars($group_name) . '</td></tr>';
             $first_group = false;
             
             // Cartes du groupe
@@ -687,19 +683,18 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 
                 echo '<tr' . $paint_class . '>';
                 
-                // Commande (numéro + version)
-                $commande_text = htmlspecialchars($card['commande_ref'] ?? '-');
+                // Commande (client + numéro/version)
+                $commande_cell = htmlspecialchars($card['client'] ?? '-');
+                $commande_cell .= '<br><small>' . htmlspecialchars($card['commande_ref'] ?? '-');
                 if (!empty($card['version'])) {
-                    $commande_text .= ' ' . htmlspecialchars($card['version']);
+                    $commande_cell .= ' ' . htmlspecialchars($card['version']);
                 }
-                echo '<td>' . $commande_text . '</td>';
-                
-                // Client
-                echo '<td>' . htmlspecialchars($card['client'] ?? '-') . '</td>';
-                
+                $commande_cell .= '</small>';
+                echo '<td>' . $commande_cell . '</td>';
+
                 // Référence client
                 echo '<td>' . htmlspecialchars($card['ref_chantier'] ?? '-') . '</td>';
-                
+
                 // Délai
                 echo '<td>' . htmlspecialchars($card['deadline'] ?? '-') . '</td>';
                 
