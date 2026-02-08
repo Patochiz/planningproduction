@@ -200,11 +200,19 @@ if ($data === false && $type !== 'global') {
     .group-separator {
         background: #ecf0f1;
         border: none;
-        text-align: center;
+        text-align: left;
         font-weight: bold;
         color: #2c3e50;
         padding: 8px;
         font-size: 11pt;
+    }
+
+    .group-qty-badge {
+        background: rgba(52, 73, 94, 0.15);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 9pt;
+        margin-right: 6px;
     }
     
     /* Tableau des éléments */
@@ -658,13 +666,19 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
         
         $first_group = true;
         foreach ($groups as $group_name => $cards) {
-            // Ligne de séparation de groupe (sauf pour le premier)
-            if (!$first_group) {
-                echo '<tr><td colspan="9" class="group-separator">📁 ' . htmlspecialchars($group_name) . '</td></tr>';
-            } else {
-                echo '<tr><td colspan="9" class="group-separator">📁 ' . htmlspecialchars($group_name) . '</td></tr>';
-                $first_group = false;
+            // Calculer la quantité totale du groupe
+            $group_total_qty = 0;
+            $group_unite = 'u';
+            foreach ($cards as $c) {
+                $group_total_qty += floatval($c['quantity'] ?? 0);
+                if ($group_unite === 'u' && !empty($c['unite'])) {
+                    $group_unite = $c['unite'];
+                }
             }
+            $qty_display = ($group_total_qty == intval($group_total_qty)) ? intval($group_total_qty) : $group_total_qty;
+
+            echo '<tr><td colspan="9" class="group-separator"><span class="group-qty-badge">' . $qty_display . ' ' . htmlspecialchars($group_unite) . '</span>📁 ' . htmlspecialchars($group_name) . '</td></tr>';
+            $first_group = false;
             
             // Cartes du groupe
             foreach ($cards as $card) {
