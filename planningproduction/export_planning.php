@@ -448,6 +448,7 @@ if ($data === false && $type !== 'global') {
         </div>
         
         <!-- Non planifiées -->
+        <?php if (!empty($unplanned)): ?>
         <div class="export-section page-break">
             <h2 class="section-title">
                 📋 Non Planifiées
@@ -455,17 +456,21 @@ if ($data === false && $type !== 'global') {
             </h2>
             <?php renderCardsTable($unplanned, $langs); ?>
         </div>
-        
+        <?php endif; ?>
+
         <!-- À terminer -->
+        <?php if (!empty($to_finish)): ?>
         <div class="export-section page-break">
             <h2 class="section-title">
-                ⚠️ À Terminer  
+                ⚠️ À Terminer
                 <span class="section-count"><?php echo count($to_finish); ?> éléments</span>
             </h2>
             <?php renderCardsTable($to_finish, $langs); ?>
         </div>
-        
+        <?php endif; ?>
+
         <!-- À expédier -->
+        <?php if (!empty($to_ship)): ?>
         <div class="export-section page-break">
             <h2 class="section-title">
                 ✅ À Expédier
@@ -473,6 +478,7 @@ if ($data === false && $type !== 'global') {
             </h2>
             <?php renderCardsTable($to_ship, $langs); ?>
         </div>
+        <?php endif; ?>
         
         <!-- Statistiques globales -->
         <div class="export-stats">
