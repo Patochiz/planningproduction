@@ -420,7 +420,7 @@ if ($data === false && $type !== 'global') {
     <!-- Actions (non imprimées) -->
     <div class="export-actions">
         <button class="btn btn-print" onclick="window.print()">🖨️ Imprimer</button>
-        <a href="planning.php" class="btn btn-back">← Retour</a>
+        <a href="planning.php" class="btn btn-back">✏️ Modifier</a>
     </div>
     
     <!-- Header -->
