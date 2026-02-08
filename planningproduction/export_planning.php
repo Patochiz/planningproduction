@@ -160,7 +160,6 @@ if ($data === false && $type !== 'global') {
     /* Sections pour export global */
     .export-section {
         margin-bottom: 40px;
-        page-break-inside: avoid;
     }
     
     .section-title {
@@ -355,20 +354,16 @@ if ($data === false && $type !== 'global') {
             padding: 1px 3px;
         }
         
-        /* Éviter les coupures */
-        .export-section {
-            page-break-inside: avoid;
-        }
-        
+        /* Éviter les coupures au niveau des lignes */
         .export-table tr {
             page-break-inside: avoid;
         }
-        
+
         /* Forcer les sauts de page pour export global */
         .page-break {
             page-break-before: always;
         }
-        
+
         .week-title {
             page-break-after: avoid;
         }
