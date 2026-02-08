@@ -159,31 +159,39 @@ function handleCardDrop(e, dropZone) {
         if (sourceGroup === dropZone) {
             return handleCardReorderInGroup(e, dropZone);
         } else {
+            // Vérifier que le produit de la carte correspond au produit du groupe
+            const cardProduitRef = draggedCard.dataset.produitRef || '';
+            const groupProduitRef = dropZone.dataset.produitRef || '';
+
+            if (groupProduitRef && cardProduitRef !== groupProduitRef) {
+                showToast('Ce groupe n\'accepte que le produit "' + groupProduitRef + '"', 'error');
+                dropZone.classList.remove('drop-target');
+                return false;
+            }
+
             // Déplacer vers un groupe différent
             const weekRow = dropZone.closest('.week-row');
             const weekHeader = weekRow.querySelector('.week-header span').textContent;
             const weekNum = parseInt(weekHeader.match(/SEMAINE (\d+)/)?.[1] || '0');
             const groupName = dropZone.querySelector('input[type="text"]')?.value || 'Groupe par défaut';
-            
+
             actionPromise = moveCardToGroup(fkCommande, fkCommandedet, weekNum, getCurrentYear(), groupName);
             actionText = 'Ajouté au groupe "' + groupName + '"';
         }
-        
+
     } else if (dropZone.classList.contains('new-group-zone')) {
-        // Créer un nouveau groupe
+        // Créer un nouveau groupe avec le nom du produit
         const week = parseInt(dropZone.dataset.week);
-        const weekElement = dropZone.closest('.week-row');
-        const groupName = generateUniqueGroupName(weekElement);
-        
+        const groupName = draggedCard.dataset.produit || 'Nouveau Groupe';
+
         actionPromise = moveCardToGroup(fkCommande, fkCommandedet, week, getCurrentYear(), groupName);
         actionText = 'Groupe créé "' + groupName + '" en semaine ' + week;
-        
+
     } else if (dropZone.classList.contains('empty-week')) {
-        // Planifier dans une semaine vide
+        // Planifier dans une semaine vide avec le nom du produit
         const week = parseInt(dropZone.dataset.week);
-        const weekElement = dropZone.closest('.week-row');
-        const groupName = generateUniqueGroupName(weekElement);
-        
+        const groupName = draggedCard.dataset.produit || 'Nouveau Groupe';
+
         actionPromise = moveCardToGroup(fkCommande, fkCommandedet, week, getCurrentYear(), groupName);
         actionText = 'Planifié en semaine ' + week + ' avec groupe "' + groupName + '"';
     }
