@@ -538,10 +538,10 @@ function renderCardsTable($cards, $langs)
     
     foreach ($cards as $card) {
         // Ligne jaune si à peindre
-        $paint_class = (!empty($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' paint-required' : '';
-        
+        $paint_class = (!empty($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' class="paint-required"' : '';
+
         echo '<tr' . $paint_class . '>';
-        
+
         // Commande (client + numéro/version)
         $commande_cell = htmlspecialchars($card['client'] ?? '-');
         $commande_cell .= '<br><small>' . htmlspecialchars($card['commande_ref'] ?? '-');
@@ -679,8 +679,8 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
             // Cartes du groupe
             foreach ($cards as $card) {
                 // Ligne jaune si à peindre
-                $paint_class = (!empty($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' paint-required' : '';
-                
+                $paint_class = (!empty($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' class="paint-required"' : '';
+
                 echo '<tr' . $paint_class . '>';
                 
                 // Commande (client + numéro/version)
