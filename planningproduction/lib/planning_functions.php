@@ -266,12 +266,12 @@ function generateGroupHTML($group_name, $cards, $week_num, $langs)
 
     // Header du groupe (draggable)
     $html .= '<div class="group-header" draggable="true">';
+    $qty_display = ($total_qty == intval($total_qty)) ? intval($total_qty) : $total_qty;
+    $html .= '<span class="group-count">' . $qty_display . ' ' . htmlspecialchars($group_unite) . '</span>';
     $html .= '<div class="group-title">';
     $html .= '📁 <input type="text" value="' . htmlspecialchars($group_name) . '" placeholder="Nom du groupe">';
     $html .= '</div>';
     $html .= '<div class="group-controls">';
-    $qty_display = ($total_qty == intval($total_qty)) ? intval($total_qty) : $total_qty;
-    $html .= '<span class="group-count">' . $qty_display . ' ' . htmlspecialchars($group_unite) . '</span>';
     $html .= '<button class="group-toggle" onclick="toggleGroup(this)">🔽</button>';
     $html .= '</div>';
     $html .= '</div>';
