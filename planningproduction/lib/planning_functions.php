@@ -272,7 +272,7 @@ function generateGroupHTML($group_name, $cards, $week_num, $langs)
     $html .= '📁 <input type="text" value="' . htmlspecialchars($group_name) . '" placeholder="Nom du groupe">';
     $html .= '</div>';
     $html .= '<div class="group-controls">';
-    $html .= '<button class="group-toggle" onclick="toggleGroup(this)">🔽</button>';
+    $html .= '<button class="group-toggle">🔽</button>';
     $html .= '</div>';
     $html .= '</div>';
     
