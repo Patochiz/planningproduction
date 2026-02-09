@@ -85,8 +85,10 @@ function handleDragOver(e) {
             // Pas d'indicateur spécial pour ces zones
         }
     } else if (dragType === 'group') {
-        if (this.classList.contains('week-groups')) {
-            showGroupDropIndicator(e, this);
+        // Trouver le .week-groups le plus proche (peut être this ou un parent)
+        const weekGroups = this.classList.contains('week-groups') ? this : this.closest('.week-groups');
+        if (weekGroups) {
+            showGroupDropIndicator(e, weekGroups);
         }
     }
     
@@ -102,8 +104,9 @@ function handleDragEnter(e) {
             this.classList.add('drop-target');
         }
     } else if (dragType === 'group') {
-        if (this.classList.contains('week-groups')) {
-            this.classList.add('group-drag-over');
+        const weekGroups = this.classList.contains('week-groups') ? this : this.closest('.week-groups');
+        if (weekGroups) {
+            weekGroups.classList.add('group-drag-over');
         }
     }
 }
@@ -227,7 +230,16 @@ function handleGroupDrop(e, dropZone) {
         console.error('Pas de groupe en cours de déplacement');
         return false;
     }
-    
+
+    // Si le drop est sur un enfant de week-groups, remonter au parent
+    if (!dropZone.classList.contains('week-groups')) {
+        dropZone = dropZone.closest('.week-groups');
+        if (!dropZone) {
+            console.warn('Aucun week-groups trouvé pour le drop de groupe');
+            return false;
+        }
+    }
+
     if (dropZone.classList.contains('week-groups')) {
         const sourceWeekGroups = draggedFromContainer;
         
