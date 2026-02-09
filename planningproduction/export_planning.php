@@ -126,6 +126,7 @@ if ($data === false && $type !== 'global') {
         line-height: 1.4;
         color: #333;
         background: white;
+        margin: 15px;
     }
     
     /* Header de la page */
@@ -213,7 +214,18 @@ if ($data === false && $type !== 'global') {
         font-size: 9pt;
         margin-right: 6px;
     }
-    
+
+    .badge-vn {
+        display: inline-block;
+        background: #e74c3c;
+        color: #fff;
+        font-size: 8pt;
+        font-weight: bold;
+        padding: 1px 4px;
+        border-radius: 3px;
+        vertical-align: middle;
+    }
+
     /* Tableau des éléments */
     .export-table {
         width: 100%;
@@ -257,12 +269,12 @@ if ($data === false && $type !== 'global') {
     }
     
     /* Colonnes spécifiques - NOUVEL ORDRE */
-    .col-commande { width: 20%; }
+    .col-commande { width: 15%; }
     .col-ref { width: 12%; }
-    .col-delai { width: 8%; }
-    .col-produit { width: 18%; }
-    .col-matiere { width: 12%; }
-    .col-qte { width: 8%; }
+    .col-delai { width: 4%; }
+    .col-produit { width: 25%; }
+    .col-matiere { width: 14%; }
+    .col-qte { width: 8%; text-align: right; }
     .col-livraison { width: 12%; }
     .col-statuts { width: 10%; }
 
@@ -367,6 +379,15 @@ if ($data === false && $type !== 'global') {
         .week-title {
             page-break-after: avoid;
         }
+
+        .col-commande { width: 15%; }
+        .col-ref { width: 12%; }
+        .col-delai { width: 4%; }
+        .col-produit { width: 25%; }
+        .col-matiere { width: 14%; }
+        .col-qte { width: 8%; text-align: right; }
+        .col-livraison { width: 12%; }
+        .col-statuts { width: 10%; }
     }
     
     /* Boutons d'action (cachés à l'impression) */
@@ -560,23 +581,24 @@ function renderCardsTable($cards, $langs)
 
         // Produit (référence + description)
         $produit = '';
+        $vn_badge = !empty($card['has_vn']) ? ' <span class="badge-vn">+VN</span>' : '';
         if (!empty($card['produit_ref'])) {
-            $produit = '<strong>' . htmlspecialchars($card['produit_ref']) . '</strong>';
+            $produit = '<strong>' . htmlspecialchars($card['produit_ref']) . '</strong>' . $vn_badge;
             if (!empty($card['produit'])) {
                 $produit .= '<br><small>' . htmlspecialchars($card['produit']) . '</small>';
             }
         } else if (!empty($card['produit'])) {
-            $produit = htmlspecialchars($card['produit']);
+            $produit = htmlspecialchars($card['produit']) . $vn_badge;
         } else {
             $produit = '-';
         }
         echo '<td>' . $produit . '</td>';
-        
+
         // Matière
         echo '<td>' . htmlspecialchars($card['matiere'] ?? '-') . '</td>';
-        
+
         // Quantité
-        echo '<td>' . htmlspecialchars(($card['quantity'] ?? '0') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
+        echo '<td style="text-align:right">' . htmlspecialchars(number_format(floatval($card['quantity'] ?? 0), 2, ',', '') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
         
         // Livraison
         echo '<td>' . htmlspecialchars($card['delivery'] ?? '-') . '</td>';
@@ -701,13 +723,14 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 
                 // Produit (référence + description)
                 $produit = '';
+                $vn_badge = !empty($card['has_vn']) ? ' <span class="badge-vn">+VN</span>' : '';
                 if (!empty($card['produit_ref'])) {
-                    $produit = '<strong>' . htmlspecialchars($card['produit_ref']) . '</strong>';
+                    $produit = '<strong>' . htmlspecialchars($card['produit_ref']) . '</strong>' . $vn_badge;
                     if (!empty($card['produit'])) {
                         $produit .= '<br><small>' . htmlspecialchars($card['produit']) . '</small>';
                     }
                 } else if (!empty($card['produit'])) {
-                    $produit = htmlspecialchars($card['produit']);
+                    $produit = htmlspecialchars($card['produit']) . $vn_badge;
                 } else {
                     $produit = '-';
                 }
@@ -717,7 +740,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 echo '<td>' . htmlspecialchars($card['matiere'] ?? '-') . '</td>';
                 
                 // Quantité
-                echo '<td>' . htmlspecialchars(($card['quantity'] ?? '0') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
+                echo '<td style="text-align:right">' . htmlspecialchars(number_format(floatval($card['quantity'] ?? 0), 2, ',', '') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
                 
                 // Livraison
                 echo '<td>' . htmlspecialchars($card['delivery'] ?? '-') . '</td>';

@@ -184,7 +184,15 @@ class PlanningProduction extends CommonObject
         $sql .= " AND cd_titre.rang < cd.rang ";
         $sql .= " ORDER BY cd_titre.rang DESC ";
         $sql .= " LIMIT 1 ";
-        $sql .= ") as titre_ref_chantier ";
+        $sql .= ") as titre_ref_chantier, ";
+        // Sous-requête pour détecter si la ligne suivante est le produit Vernis (ID=299)
+        $sql .= "(SELECT CASE WHEN cd_next.fk_product = 299 THEN 1 ELSE 0 END ";
+        $sql .= " FROM ".MAIN_DB_PREFIX."commandedet cd_next ";
+        $sql .= " WHERE cd_next.fk_commande = cd.fk_commande ";
+        $sql .= " AND cd_next.rang > cd.rang ";
+        $sql .= " ORDER BY cd_next.rang ASC ";
+        $sql .= " LIMIT 1 ";
+        $sql .= ") as has_vn ";
 
         $sql .= "FROM ".MAIN_DB_PREFIX."commande c ";
         $sql .= "INNER JOIN ".MAIN_DB_PREFIX."commandedet cd ON c.rowid = cd.fk_commande ";
@@ -193,11 +201,12 @@ class PlanningProduction extends CommonObject
         $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."c_units u ON cd.fk_unit = u.rowid ";
         $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."commande_extrafields c_ef ON c.rowid = c_ef.fk_object ";
         $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_ef ON cd.rowid = cd_ef.fk_object ";
-        
+
         // Conditions de base
         $sql .= "WHERE c.fk_statut = 1 "; // Commandes validées
         $sql .= "AND c.facture = 0 "; // Non facturées (non expédiées)
         $sql .= "AND p.finished = 1 "; // Produits manufacturés uniquement
+        $sql .= "AND cd.fk_product != 299 "; // Exclure le produit Vernis
         $sql .= "AND c.entity IN (".getEntity('commande').")";
         
         // Filtrer selon le statut demandé
@@ -251,7 +260,8 @@ class PlanningProduction extends CommonObject
                     'statut_mp' => $obj->statut_mp,
                     'statut_ar' => $obj->statut_ar,
                     'statut_prod' => $obj->statut_prod ?: 'À PRODUIRE',
-                    'postlaquage' => $obj->postlaquage
+                    'postlaquage' => $obj->postlaquage,
+                    'has_vn' => !empty($obj->has_vn)
                 );
 
                 $cards[] = $card;
@@ -387,8 +397,16 @@ class PlanningProduction extends CommonObject
         $sql .= " AND cd_titre.rang < cd.rang ";
         $sql .= " ORDER BY cd_titre.rang DESC ";
         $sql .= " LIMIT 1 ";
-        $sql .= ") as titre_ref_chantier ";
-        
+        $sql .= ") as titre_ref_chantier, ";
+        // Sous-requête pour détecter si la ligne suivante est le produit Vernis (ID=299)
+        $sql .= "(SELECT CASE WHEN cd_next.fk_product = 299 THEN 1 ELSE 0 END ";
+        $sql .= " FROM ".MAIN_DB_PREFIX."commandedet cd_next ";
+        $sql .= " WHERE cd_next.fk_commande = cd.fk_commande ";
+        $sql .= " AND cd_next.rang > cd.rang ";
+        $sql .= " ORDER BY cd_next.rang ASC ";
+        $sql .= " LIMIT 1 ";
+        $sql .= ") as has_vn ";
+
         $sql .= "FROM ".MAIN_DB_PREFIX."planningproduction_planning pp ";
         $sql .= "INNER JOIN ".MAIN_DB_PREFIX."commande c ON pp.fk_commande = c.rowid ";
         $sql .= "INNER JOIN ".MAIN_DB_PREFIX."commandedet cd ON pp.fk_commandedet = cd.rowid ";
@@ -401,7 +419,8 @@ class PlanningProduction extends CommonObject
         $sql .= "WHERE pp.annee = ".((int) $year)." ";
         $sql .= "AND pp.semaine >= ".((int) $start_week)." ";
         $sql .= "AND pp.semaine < ".((int) ($start_week + $nb_weeks))." ";
-        
+        $sql .= "AND cd.fk_product != 299 "; // Exclure le produit Vernis
+
         // MODIFICATION IMPORTANTE : Exclure les cartes avec statut "À TERMINER" ou "BON POUR EXPÉDITION"
         // Ces cartes ne doivent apparaître que dans les onglets, pas dans le planning des semaines
         $sql .= "AND (cd_ef.statut_prod IS NULL OR cd_ef.statut_prod = '' OR cd_ef.statut_prod NOT IN ('À TERMINER', 'BON POUR EXPÉDITION')) ";
@@ -442,6 +461,7 @@ class PlanningProduction extends CommonObject
                     'statut_ar' => $obj->statut_ar,
                     'statut_prod' => $obj->statut_prod,
                     'postlaquage' => $obj->postlaquage,
+                    'has_vn' => !empty($obj->has_vn),
                     'groupe' => $obj->groupe_nom ?: 'Groupe par défaut',
                     'semaine' => $obj->semaine
                 );
