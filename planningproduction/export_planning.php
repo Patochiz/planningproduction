@@ -126,6 +126,7 @@ if ($data === false && $type !== 'global') {
         line-height: 1.4;
         color: #333;
         background: white;
+        margin: 15px;
     }
     
     /* Header de la page */
