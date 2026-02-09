@@ -138,6 +138,9 @@ function generateCardHTML($card, $langs)
         } else {
             $html .= htmlspecialchars($card['produit']);
         }
+        if (!empty($card['has_vn'])) {
+            $html .= ' <span class="badge-vn">+VN</span>';
+        }
     } else {
         $html .= '-';
     }

@@ -213,7 +213,18 @@ if ($data === false && $type !== 'global') {
         font-size: 9pt;
         margin-right: 6px;
     }
-    
+
+    .badge-vn {
+        display: inline-block;
+        background: #e74c3c;
+        color: #fff;
+        font-size: 8pt;
+        font-weight: bold;
+        padding: 1px 4px;
+        border-radius: 3px;
+        vertical-align: middle;
+    }
+
     /* Tableau des éléments */
     .export-table {
         width: 100%;
@@ -560,21 +571,22 @@ function renderCardsTable($cards, $langs)
 
         // Produit (référence + description)
         $produit = '';
+        $vn_badge = !empty($card['has_vn']) ? ' <span class="badge-vn">+VN</span>' : '';
         if (!empty($card['produit_ref'])) {
-            $produit = '<strong>' . htmlspecialchars($card['produit_ref']) . '</strong>';
+            $produit = '<strong>' . htmlspecialchars($card['produit_ref']) . '</strong>' . $vn_badge;
             if (!empty($card['produit'])) {
                 $produit .= '<br><small>' . htmlspecialchars($card['produit']) . '</small>';
             }
         } else if (!empty($card['produit'])) {
-            $produit = htmlspecialchars($card['produit']);
+            $produit = htmlspecialchars($card['produit']) . $vn_badge;
         } else {
             $produit = '-';
         }
         echo '<td>' . $produit . '</td>';
-        
+
         // Matière
         echo '<td>' . htmlspecialchars($card['matiere'] ?? '-') . '</td>';
-        
+
         // Quantité
         echo '<td>' . htmlspecialchars(($card['quantity'] ?? '0') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
         
@@ -701,13 +713,14 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 
                 // Produit (référence + description)
                 $produit = '';
+                $vn_badge = !empty($card['has_vn']) ? ' <span class="badge-vn">+VN</span>' : '';
                 if (!empty($card['produit_ref'])) {
-                    $produit = '<strong>' . htmlspecialchars($card['produit_ref']) . '</strong>';
+                    $produit = '<strong>' . htmlspecialchars($card['produit_ref']) . '</strong>' . $vn_badge;
                     if (!empty($card['produit'])) {
                         $produit .= '<br><small>' . htmlspecialchars($card['produit']) . '</small>';
                     }
                 } else if (!empty($card['produit'])) {
-                    $produit = htmlspecialchars($card['produit']);
+                    $produit = htmlspecialchars($card['produit']) . $vn_badge;
                 } else {
                     $produit = '-';
                 }
