@@ -274,7 +274,7 @@ if ($data === false && $type !== 'global') {
     .col-delai { width: 4%; }
     .col-produit { width: 25%; }
     .col-matiere { width: 14%; }
-    .col-qte { width: 8%; }
+    .col-qte { width: 8%; text-align: right; }
     .col-livraison { width: 12%; }
     .col-statuts { width: 10%; }
 
@@ -385,7 +385,7 @@ if ($data === false && $type !== 'global') {
         .col-delai { width: 4%; }
         .col-produit { width: 25%; }
         .col-matiere { width: 14%; }
-        .col-qte { width: 8%; }
+        .col-qte { width: 8%; text-align: right; }
         .col-livraison { width: 12%; }
         .col-statuts { width: 10%; }
     }
@@ -598,7 +598,7 @@ function renderCardsTable($cards, $langs)
         echo '<td>' . htmlspecialchars($card['matiere'] ?? '-') . '</td>';
 
         // Quantité
-        echo '<td>' . htmlspecialchars(($card['quantity'] ?? '0') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
+        echo '<td style="text-align:right">' . htmlspecialchars(number_format(floatval($card['quantity'] ?? 0), 2, ',', '') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
         
         // Livraison
         echo '<td>' . htmlspecialchars($card['delivery'] ?? '-') . '</td>';
@@ -740,7 +740,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 echo '<td>' . htmlspecialchars($card['matiere'] ?? '-') . '</td>';
                 
                 // Quantité
-                echo '<td>' . htmlspecialchars(($card['quantity'] ?? '0') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
+                echo '<td style="text-align:right">' . htmlspecialchars(number_format(floatval($card['quantity'] ?? 0), 2, ',', '') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
                 
                 // Livraison
                 echo '<td>' . htmlspecialchars($card['delivery'] ?? '-') . '</td>';
