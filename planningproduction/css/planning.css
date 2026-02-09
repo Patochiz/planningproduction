@@ -860,9 +860,11 @@ body:has(.planning-container) .fiche {
 }
 
 .group-cards.collapsed {
-    max-height: 40px;
+    min-height: 0;
+    max-height: 0;
     overflow: hidden;
     opacity: 0.7;
+    padding: 0 10px;
 }
 
 /* Types de groupes */
