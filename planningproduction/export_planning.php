@@ -269,12 +269,12 @@ if ($data === false && $type !== 'global') {
     }
     
     /* Colonnes spécifiques - NOUVEL ORDRE */
-    .col-commande { width: 20%; }
+    .col-commande { width: 15%; }
     .col-ref { width: 12%; }
-    .col-delai { width: 8%; }
-    .col-produit { width: 18%; }
-    .col-matiere { width: 12%; }
-    .col-qte { width: 8%; }
+    .col-delai { width: 4%; }
+    .col-produit { width: 28%; }
+    .col-matiere { width: 14%; }
+    .col-qte { width: 5%; }
     .col-livraison { width: 12%; }
     .col-statuts { width: 10%; }
 
@@ -379,6 +379,15 @@ if ($data === false && $type !== 'global') {
         .week-title {
             page-break-after: avoid;
         }
+
+        .col-commande { width: 15%; }
+        .col-ref { width: 12%; }
+        .col-delai { width: 4%; }
+        .col-produit { width: 28%; }
+        .col-matiere { width: 14%; }
+        .col-qte { width: 5%; }
+        .col-livraison { width: 12%; }
+        .col-statuts { width: 10%; }
     }
     
     /* Boutons d'action (cachés à l'impression) */
