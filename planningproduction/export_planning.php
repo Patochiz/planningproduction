@@ -272,9 +272,9 @@ if ($data === false && $type !== 'global') {
     .col-commande { width: 15%; }
     .col-ref { width: 12%; }
     .col-delai { width: 4%; }
-    .col-produit { width: 28%; }
+    .col-produit { width: 25%; }
     .col-matiere { width: 14%; }
-    .col-qte { width: 5%; }
+    .col-qte { width: 8%; }
     .col-livraison { width: 12%; }
     .col-statuts { width: 10%; }
 
@@ -383,9 +383,9 @@ if ($data === false && $type !== 'global') {
         .col-commande { width: 15%; }
         .col-ref { width: 12%; }
         .col-delai { width: 4%; }
-        .col-produit { width: 28%; }
+        .col-produit { width: 25%; }
         .col-matiere { width: 14%; }
-        .col-qte { width: 5%; }
+        .col-qte { width: 8%; }
         .col-livraison { width: 12%; }
         .col-statuts { width: 10%; }
     }
