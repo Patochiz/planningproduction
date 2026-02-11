@@ -176,6 +176,7 @@ function renderMatieresTable() {
         // Style inline en complément des classes CSS
         const rowStyle = isStockAlert ? 'background-color: #ffebee;' : (isDesync ? 'background-color: #fff3e0;' : '');
         const resteStyle = isStockAlert ? 'color: #c62828; font-weight: bold;' : '';
+        const cdeStyle = isDesync ? 'color: #c62828; font-weight: bold;' : '';
 
         html += `
             <tr class="${rowClasses.join(' ')}" data-rowid="${matiere.rowid}" style="${rowStyle}">
@@ -189,7 +190,7 @@ function renderMatieresTable() {
                            onchange="updateStock(${matiere.rowid}, this.value)"
                            onblur="updateStock(${matiere.rowid}, this.value)">
                 </td>
-                <td class="numeric-cell" data-field="cde_en_cours">${formatNumber(matiere.cde_en_cours)}</td>
+                <td class="numeric-cell" style="${cdeStyle}" data-field="cde_en_cours">${formatNumber(matiere.cde_en_cours)}</td>
                 <td class="numeric-cell">
                     <input type="number"
                            class="cde-editable"
@@ -492,6 +493,18 @@ function updateRowDesyncStatus(rowid) {
             row.style.backgroundColor = '#fff3e0';
         } else {
             row.style.backgroundColor = '';
+        }
+
+        // CDE EN COURS en rouge gras si désynchronisé
+        const cdeCell = row.querySelector('td[data-field="cde_en_cours"]');
+        if (cdeCell) {
+            if (isDesync) {
+                cdeCell.style.color = '#c62828';
+                cdeCell.style.fontWeight = 'bold';
+            } else {
+                cdeCell.style.color = '';
+                cdeCell.style.fontWeight = '';
+            }
         }
     }
 }
