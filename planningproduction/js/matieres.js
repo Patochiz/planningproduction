@@ -145,17 +145,18 @@ function renderMatieresTable() {
         const reste = parseFloat(matiere.stock) - parseFloat(matiere.cde_en_cours_date);
         const isStockAlert = reste <= 0;
         const isDesync = matiere.is_desync || false;
-        
-        // Classe pour la ligne: rouge si désynchronisé, sinon stock-alert si reste <= 0
-        let rowClass = '';
+
+        // Classes cumulables sur la ligne
+        let rowClasses = [];
         if (isDesync) {
-            rowClass = 'row-desync';
-        } else if (isStockAlert) {
-            rowClass = 'stock-alert';
+            rowClasses.push('row-desync');
         }
-        
+        if (isStockAlert) {
+            rowClasses.push('row-stock-alert');
+        }
+
         html += `
-            <tr class="${rowClass}" data-rowid="${matiere.rowid}">
+            <tr class="${rowClasses.join(' ')}" data-rowid="${matiere.rowid}">
                 <td><strong>${escapeHtml(matiere.code_mp)}</strong></td>
                 <td class="numeric-cell">
                     <input type="number" 
@@ -176,7 +177,7 @@ function renderMatieresTable() {
                            onchange="updateCdeEnCoursDate(${matiere.rowid}, this.value)"
                            onblur="updateCdeEnCoursDate(${matiere.rowid}, this.value)">
                 </td>
-                <td class="numeric-cell ${isStockAlert ? 'stock-alert' : ''}" data-field="reste">${formatNumber(reste)}</td>
+                <td class="numeric-cell ${isStockAlert ? 'reste-alert' : ''}" data-field="reste">${formatNumber(reste)}</td>
                 <td>${formatDate(matiere.date_maj)}</td>
                 <td>
                     <button type="button" 
@@ -201,8 +202,8 @@ function renderMatieresTable() {
                 <li><strong>CDE EN COURS</strong> : Somme des quantités des cartes ayant ce code MP (calculé en temps réel, hors À TERMINER/BON POUR EXPÉDITION)</li>
                 <li style="color: #f39c12;"><strong>CDE EN COURS à date</strong> : Valeur figée des commandes en cours (éditable manuellement)</li>
                 <li><strong>RESTE</strong> : Stock - CDE EN COURS à date</li>
-                <li style="color: #e74c3c;"><strong>Ligne rouge</strong> : Désynchronisation (CDE EN COURS ≠ CDE EN COURS à date) - Cliquez sur "MàJ" pour synchroniser</li>
-                <li style="color: #c62828;"><strong>Rouge sur RESTE</strong> : Stock insuffisant (reste ≤ 0)</li>
+                <li style="color: #e74c3c;"><strong>Ligne rouge clair</strong> : Stock insuffisant (reste ≤ 0)</li>
+                <li style="color: #e67e22;"><strong>Ligne orange</strong> : Désynchronisation (CDE EN COURS ≠ CDE EN COURS à date) - Cliquez sur "MàJ" pour synchroniser</li>
             </ul>
             <p style="margin-top: 10px;"><em><strong>Note importante :</strong> Le bouton "MàJ" copie la valeur de "CDE EN COURS" (calculée) vers "CDE EN COURS à date" pour les synchroniser.</em></p>
         </div>

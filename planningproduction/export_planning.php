@@ -612,8 +612,10 @@ if ($data === false && $type !== 'global') {
     .btn-update-cde:active { transform: translateY(0); }
 
     .numeric-cell { text-align: right; font-weight: 500; }
-    .stock-alert { background-color: #ffebee !important; color: #c62828 !important; font-weight: bold; }
-    .row-desync { background-color: #ffe5e5 !important; }
+    .row-stock-alert { background-color: #ffebee !important; }
+    .row-stock-alert td { background-color: inherit !important; color: #c62828; font-weight: bold; }
+    .reste-alert { color: #c62828 !important; font-weight: bold !important; }
+    .row-desync { background-color: #fff3e0 !important; }
     .row-desync td { background-color: inherit !important; }
 
     .matiere-message { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; }
