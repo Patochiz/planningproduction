@@ -200,7 +200,7 @@ function renderMatieresTable() {
                            onblur="updateCdeEnCoursDate(${matiere.rowid}, this.value)">
                 </td>
                 <td class="numeric-cell" style="${resteStyle}" data-field="reste">${formatNumber(reste)}</td>
-                <td style="${cellStyle}">${formatDate(matiere.date_maj)}</td>
+                <td>${formatDate(matiere.date_maj)}</td>
                 <td>
                     <button type="button"
                             class="btn-update-cde"
