@@ -593,15 +593,26 @@ if ($planned_cards === false) {
     font-weight: 500;
 }
 
-.stock-alert {
+/* Ligne en rouge si stock insuffisant (reste <= 0) */
+.row-stock-alert {
     background-color: #ffebee !important;
-    color: #c62828 !important;
+}
+
+.row-stock-alert td {
+    background-color: inherit !important;
+    color: #c62828;
     font-weight: bold;
 }
 
-/* Ligne en rouge si désynchronisation entre CDE EN COURS et CDE EN COURS à date */
+/* Cellule reste en alerte */
+.reste-alert {
+    color: #c62828 !important;
+    font-weight: bold !important;
+}
+
+/* Ligne en orange si désynchronisation entre CDE EN COURS et CDE EN COURS à date */
 .row-desync {
-    background-color: #ffe5e5 !important;
+    background-color: #fff3e0 !important;
 }
 
 .row-desync td {
