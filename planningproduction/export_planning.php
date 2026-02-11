@@ -267,7 +267,16 @@ if ($data === false && $type !== 'global') {
     .export-table tr.paint-required:hover {
         background: #ffff66 !important;
     }
-    
+
+    /* Bordures gauches selon statuts MP/AR */
+    .export-table tr.border-green td:first-child {
+        border-left: 6px solid #27ae60;
+    }
+
+    .export-table tr.border-red td:first-child {
+        border-left: 6px solid #e74c3c;
+    }
+
     /* Colonnes spécifiques - NOUVEL ORDRE */
     .col-commande { width: 15%; }
     .col-ref { width: 12%; }
@@ -780,9 +789,14 @@ function renderCardsTable($cards, $langs)
     
     foreach ($cards as $card) {
         // Ligne jaune si à peindre
-        $paint_class = (!empty($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' class="paint-required"' : '';
+        $paint_class = (!empty($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' paint-required' : '';
 
-        echo '<tr' . $paint_class . '>';
+        // Bordure gauche selon statuts MP et AR
+        $mp_ok = (isset($card['statut_mp']) && strpos($card['statut_mp'], 'MP Ok') !== false);
+        $ar_ok = (isset($card['statut_ar']) && $card['statut_ar'] == 'AR VALIDÉ');
+        $border_class = ($mp_ok && $ar_ok) ? ' border-green' : ' border-red';
+
+        echo '<tr class="' . trim($paint_class . $border_class) . '">';
 
         // Commande (client + numéro/version)
         $commande_cell = htmlspecialchars($card['client'] ?? '-');
@@ -922,9 +936,14 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
             // Cartes du groupe
             foreach ($cards as $card) {
                 // Ligne jaune si à peindre
-                $paint_class = (!empty($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' class="paint-required"' : '';
+                $paint_class = (!empty($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' paint-required' : '';
 
-                echo '<tr' . $paint_class . '>';
+                // Bordure gauche selon statuts MP et AR
+                $mp_ok = (isset($card['statut_mp']) && strpos($card['statut_mp'], 'MP Ok') !== false);
+                $ar_ok = (isset($card['statut_ar']) && $card['statut_ar'] == 'AR VALIDÉ');
+                $border_class = ($mp_ok && $ar_ok) ? ' border-green' : ' border-red';
+
+                echo '<tr class="' . trim($paint_class . $border_class) . '">';
                 
                 // Commande (client + numéro/version)
                 $commande_cell = htmlspecialchars($card['client'] ?? '-');
