@@ -17,6 +17,8 @@ CREATE TABLE llx_planningproduction_matieres (
     rowid integer AUTO_INCREMENT PRIMARY KEY NOT NULL,
     code_mp varchar(255) NOT NULL,
     stock decimal(24,8) DEFAULT 0,
+    cde_en_cours_date decimal(24,8) DEFAULT 0,
+    ordre integer DEFAULT 0,
     date_creation datetime NOT NULL,
     tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     fk_user_creat integer NOT NULL,
