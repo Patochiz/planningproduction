@@ -16,6 +16,11 @@
 let matieresData = [];
 let isMatieresModalOpen = false;
 
+// URL de base pour les appels AJAX (calculée à partir du script src)
+const matieresScriptTag = document.querySelector('script[src*="matieres.js"]');
+const matieresBaseUrl = matieresScriptTag ? matieresScriptTag.src.replace(/js\/matieres\.js.*$/, '') : '';
+const AJAX_MATIERES_URL = matieresBaseUrl + 'ajax_matieres.php';
+
 /**
  * Ouvrir le modal des matières premières
  */
@@ -82,17 +87,30 @@ function loadMatieresData() {
     `;
     
     // Requête AJAX pour récupérer les matières
-    fetch('ajax_matieres.php', {
+    fetch(AJAX_MATIERES_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: `action=get_matieres&token=${window.DOLIBARR_PLANNING_CONFIG.current_token}`
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('HTTP ' + response.status);
+        }
+        return response.text();
+    })
+    .then(text => {
+        console.log('Réponse brute:', text.substring(0, 200));
+        try {
+            return JSON.parse(text);
+        } catch(e) {
+            throw new Error('Réponse JSON invalide: ' + text.substring(0, 100));
+        }
+    })
     .then(data => {
         console.log('Données reçues:', data);
-        
+
         if (data.success) {
             matieresData = data.data || [];
             renderMatieresTable();
@@ -244,7 +262,7 @@ function updateStock(rowid, newStock) {
     }
     
     // Envoi de la mise à jour au serveur
-    fetch('ajax_matieres.php', {
+    fetch(AJAX_MATIERES_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -301,7 +319,7 @@ function updateCdeEnCoursDate(rowid, newCdeEnCoursDate) {
     }
     
     // Envoi de la mise à jour au serveur
-    fetch('ajax_matieres.php', {
+    fetch(AJAX_MATIERES_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -342,7 +360,7 @@ function syncCdeEnCours(codeMP, rowid) {
         button.innerHTML = '...';
     }
     
-    fetch('ajax_matieres.php', {
+    fetch(AJAX_MATIERES_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
