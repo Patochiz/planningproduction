@@ -155,32 +155,37 @@ function renderMatieresTable() {
             rowClasses.push('row-stock-alert');
         }
 
+        // Style inline en complément des classes CSS
+        const rowStyle = isStockAlert ? 'background-color: #ffebee;' : (isDesync ? 'background-color: #fff3e0;' : '');
+        const cellStyle = isStockAlert ? 'color: #c62828; font-weight: bold;' : '';
+        const resteStyle = isStockAlert ? 'color: #c62828; font-weight: bold;' : '';
+
         html += `
-            <tr class="${rowClasses.join(' ')}" data-rowid="${matiere.rowid}">
-                <td><strong>${escapeHtml(matiere.code_mp)}</strong></td>
-                <td class="numeric-cell">
-                    <input type="number" 
-                           class="stock-editable" 
-                           value="${matiere.stock}" 
+            <tr class="${rowClasses.join(' ')}" data-rowid="${matiere.rowid}" style="${rowStyle}">
+                <td style="${cellStyle}"><strong>${escapeHtml(matiere.code_mp)}</strong></td>
+                <td class="numeric-cell" style="${cellStyle}">
+                    <input type="number"
+                           class="stock-editable"
+                           value="${matiere.stock}"
                            step="0.01"
                            data-rowid="${matiere.rowid}"
                            onchange="updateStock(${matiere.rowid}, this.value)"
                            onblur="updateStock(${matiere.rowid}, this.value)">
                 </td>
-                <td class="numeric-cell" data-field="cde_en_cours">${formatNumber(matiere.cde_en_cours)}</td>
-                <td class="numeric-cell">
-                    <input type="number" 
-                           class="cde-editable" 
-                           value="${matiere.cde_en_cours_date}" 
+                <td class="numeric-cell" style="${cellStyle}" data-field="cde_en_cours">${formatNumber(matiere.cde_en_cours)}</td>
+                <td class="numeric-cell" style="${cellStyle}">
+                    <input type="number"
+                           class="cde-editable"
+                           value="${matiere.cde_en_cours_date}"
                            step="0.01"
                            data-rowid="${matiere.rowid}"
                            onchange="updateCdeEnCoursDate(${matiere.rowid}, this.value)"
                            onblur="updateCdeEnCoursDate(${matiere.rowid}, this.value)">
                 </td>
-                <td class="numeric-cell ${isStockAlert ? 'reste-alert' : ''}" data-field="reste">${formatNumber(reste)}</td>
-                <td>${formatDate(matiere.date_maj)}</td>
+                <td class="numeric-cell ${isStockAlert ? 'reste-alert' : ''}" style="${resteStyle}" data-field="reste">${formatNumber(reste)}</td>
+                <td style="${cellStyle}">${formatDate(matiere.date_maj)}</td>
                 <td>
-                    <button type="button" 
+                    <button type="button"
                             class="btn-update-cde"
                             onclick="syncCdeEnCours('${matiere.code_mp}', ${matiere.rowid})"
                             title="Synchroniser CDE EN COURS à date avec la valeur calculée">
@@ -430,8 +435,12 @@ function updateRowReste(rowid) {
             // Appliquer ou retirer le style d'alerte
             if (isStockAlert) {
                 cell.classList.add('reste-alert');
+                cell.style.color = '#c62828';
+                cell.style.fontWeight = 'bold';
             } else {
                 cell.classList.remove('reste-alert');
+                cell.style.color = '';
+                cell.style.fontWeight = '';
             }
         }
     }
@@ -443,13 +452,13 @@ function updateRowReste(rowid) {
 function updateRowDesyncStatus(rowid) {
     const matiere = matieresData.find(m => m.rowid == rowid);
     if (!matiere) return;
-    
+
     const row = document.querySelector(`tr[data-rowid="${rowid}"]`);
     if (row) {
         const isDesync = Math.abs(matiere.cde_en_cours - matiere.cde_en_cours_date) > 0.01;
         const reste = parseFloat(matiere.stock) - parseFloat(matiere.cde_en_cours_date);
         const isStockAlert = reste <= 0;
-        
+
         // Classes cumulables
         row.classList.remove('row-desync', 'row-stock-alert');
         if (isDesync) {
@@ -457,6 +466,27 @@ function updateRowDesyncStatus(rowid) {
         }
         if (isStockAlert) {
             row.classList.add('row-stock-alert');
+        }
+
+        // Style inline en complément des classes CSS
+        if (isStockAlert) {
+            row.style.backgroundColor = '#ffebee';
+            row.querySelectorAll('td').forEach(td => {
+                td.style.color = '#c62828';
+                td.style.fontWeight = 'bold';
+            });
+        } else if (isDesync) {
+            row.style.backgroundColor = '#fff3e0';
+            row.querySelectorAll('td').forEach(td => {
+                td.style.color = '';
+                td.style.fontWeight = '';
+            });
+        } else {
+            row.style.backgroundColor = '';
+            row.querySelectorAll('td').forEach(td => {
+                td.style.color = '';
+                td.style.fontWeight = '';
+            });
         }
     }
 }
