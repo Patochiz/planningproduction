@@ -429,9 +429,9 @@ function updateRowReste(rowid) {
             
             // Appliquer ou retirer le style d'alerte
             if (isStockAlert) {
-                cell.classList.add('stock-alert');
+                cell.classList.add('reste-alert');
             } else {
-                cell.classList.remove('stock-alert');
+                cell.classList.remove('reste-alert');
             }
         }
     }
@@ -450,12 +450,13 @@ function updateRowDesyncStatus(rowid) {
         const reste = parseFloat(matiere.stock) - parseFloat(matiere.cde_en_cours_date);
         const isStockAlert = reste <= 0;
         
-        // Priorité: désynchronisation > stock alert
-        row.classList.remove('row-desync', 'stock-alert');
+        // Classes cumulables
+        row.classList.remove('row-desync', 'row-stock-alert');
         if (isDesync) {
             row.classList.add('row-desync');
-        } else if (isStockAlert) {
-            row.classList.add('stock-alert');
+        }
+        if (isStockAlert) {
+            row.classList.add('row-stock-alert');
         }
     }
 }
