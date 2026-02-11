@@ -157,13 +157,12 @@ function renderMatieresTable() {
 
         // Style inline en complément des classes CSS
         const rowStyle = isStockAlert ? 'background-color: #ffebee;' : (isDesync ? 'background-color: #fff3e0;' : '');
-        const cellStyle = isStockAlert ? 'color: #c62828; font-weight: bold;' : '';
         const resteStyle = isStockAlert ? 'color: #c62828; font-weight: bold;' : '';
 
         html += `
             <tr class="${rowClasses.join(' ')}" data-rowid="${matiere.rowid}" style="${rowStyle}">
-                <td style="${cellStyle}"><strong>${escapeHtml(matiere.code_mp)}</strong></td>
-                <td class="numeric-cell" style="${cellStyle}">
+                <td><strong>${escapeHtml(matiere.code_mp)}</strong></td>
+                <td class="numeric-cell">
                     <input type="number"
                            class="stock-editable"
                            value="${matiere.stock}"
@@ -172,8 +171,8 @@ function renderMatieresTable() {
                            onchange="updateStock(${matiere.rowid}, this.value)"
                            onblur="updateStock(${matiere.rowid}, this.value)">
                 </td>
-                <td class="numeric-cell" style="${cellStyle}" data-field="cde_en_cours">${formatNumber(matiere.cde_en_cours)}</td>
-                <td class="numeric-cell" style="${cellStyle}">
+                <td class="numeric-cell" data-field="cde_en_cours">${formatNumber(matiere.cde_en_cours)}</td>
+                <td class="numeric-cell">
                     <input type="number"
                            class="cde-editable"
                            value="${matiere.cde_en_cours_date}"
@@ -182,7 +181,7 @@ function renderMatieresTable() {
                            onchange="updateCdeEnCoursDate(${matiere.rowid}, this.value)"
                            onblur="updateCdeEnCoursDate(${matiere.rowid}, this.value)">
                 </td>
-                <td class="numeric-cell ${isStockAlert ? 'reste-alert' : ''}" style="${resteStyle}" data-field="reste">${formatNumber(reste)}</td>
+                <td class="numeric-cell" style="${resteStyle}" data-field="reste">${formatNumber(reste)}</td>
                 <td style="${cellStyle}">${formatDate(matiere.date_maj)}</td>
                 <td>
                     <button type="button"
@@ -471,22 +470,10 @@ function updateRowDesyncStatus(rowid) {
         // Style inline en complément des classes CSS
         if (isStockAlert) {
             row.style.backgroundColor = '#ffebee';
-            row.querySelectorAll('td').forEach(td => {
-                td.style.color = '#c62828';
-                td.style.fontWeight = 'bold';
-            });
         } else if (isDesync) {
             row.style.backgroundColor = '#fff3e0';
-            row.querySelectorAll('td').forEach(td => {
-                td.style.color = '';
-                td.style.fontWeight = '';
-            });
         } else {
             row.style.backgroundColor = '';
-            row.querySelectorAll('td').forEach(td => {
-                td.style.color = '';
-                td.style.fontWeight = '';
-            });
         }
     }
 }
