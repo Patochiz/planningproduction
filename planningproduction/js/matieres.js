@@ -16,6 +16,11 @@
 let matieresData = [];
 let isMatieresModalOpen = false;
 
+// URL de base pour les appels AJAX (calculée à partir du script src)
+const matieresScriptTag = document.querySelector('script[src*="matieres.js"]');
+const matieresBaseUrl = matieresScriptTag ? matieresScriptTag.src.replace(/js\/matieres\.js.*$/, '') : '';
+const AJAX_MATIERES_URL = matieresBaseUrl + 'ajax_matieres.php';
+
 /**
  * Ouvrir le modal des matières premières
  */
@@ -82,17 +87,30 @@ function loadMatieresData() {
     `;
     
     // Requête AJAX pour récupérer les matières
-    fetch('ajax_matieres.php', {
+    fetch(AJAX_MATIERES_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: `action=get_matieres&token=${window.DOLIBARR_PLANNING_CONFIG.current_token}`
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('HTTP ' + response.status);
+        }
+        return response.text();
+    })
+    .then(text => {
+        console.log('Réponse brute:', text.substring(0, 200));
+        try {
+            return JSON.parse(text);
+        } catch(e) {
+            throw new Error('Réponse JSON invalide: ' + text.substring(0, 100));
+        }
+    })
     .then(data => {
         console.log('Données reçues:', data);
-        
+
         if (data.success) {
             matieresData = data.data || [];
             renderMatieresTable();
@@ -155,32 +173,37 @@ function renderMatieresTable() {
             rowClasses.push('row-stock-alert');
         }
 
+        // Style inline en complément des classes CSS
+        const rowStyle = isStockAlert ? 'background-color: #ffebee;' : (isDesync ? 'background-color: #fff3e0;' : '');
+        const resteStyle = isStockAlert ? 'color: #c62828; font-weight: bold;' : '';
+        const cdeStyle = isDesync ? 'color: #c62828; font-weight: bold;' : '';
+
         html += `
-            <tr class="${rowClasses.join(' ')}" data-rowid="${matiere.rowid}">
+            <tr class="${rowClasses.join(' ')}" data-rowid="${matiere.rowid}" style="${rowStyle}">
                 <td><strong>${escapeHtml(matiere.code_mp)}</strong></td>
                 <td class="numeric-cell">
-                    <input type="number" 
-                           class="stock-editable" 
-                           value="${matiere.stock}" 
+                    <input type="number"
+                           class="stock-editable"
+                           value="${matiere.stock}"
                            step="0.01"
                            data-rowid="${matiere.rowid}"
                            onchange="updateStock(${matiere.rowid}, this.value)"
                            onblur="updateStock(${matiere.rowid}, this.value)">
                 </td>
-                <td class="numeric-cell" data-field="cde_en_cours">${formatNumber(matiere.cde_en_cours)}</td>
+                <td class="numeric-cell" style="${cdeStyle}" data-field="cde_en_cours">${formatNumber(matiere.cde_en_cours)}</td>
                 <td class="numeric-cell">
-                    <input type="number" 
-                           class="cde-editable" 
-                           value="${matiere.cde_en_cours_date}" 
+                    <input type="number"
+                           class="cde-editable"
+                           value="${matiere.cde_en_cours_date}"
                            step="0.01"
                            data-rowid="${matiere.rowid}"
                            onchange="updateCdeEnCoursDate(${matiere.rowid}, this.value)"
                            onblur="updateCdeEnCoursDate(${matiere.rowid}, this.value)">
                 </td>
-                <td class="numeric-cell ${isStockAlert ? 'reste-alert' : ''}" data-field="reste">${formatNumber(reste)}</td>
+                <td class="numeric-cell" style="${resteStyle}" data-field="reste">${formatNumber(reste)}</td>
                 <td>${formatDate(matiere.date_maj)}</td>
                 <td>
-                    <button type="button" 
+                    <button type="button"
                             class="btn-update-cde"
                             onclick="syncCdeEnCours('${matiere.code_mp}', ${matiere.rowid})"
                             title="Synchroniser CDE EN COURS à date avec la valeur calculée">
@@ -240,7 +263,7 @@ function updateStock(rowid, newStock) {
     }
     
     // Envoi de la mise à jour au serveur
-    fetch('ajax_matieres.php', {
+    fetch(AJAX_MATIERES_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -297,7 +320,7 @@ function updateCdeEnCoursDate(rowid, newCdeEnCoursDate) {
     }
     
     // Envoi de la mise à jour au serveur
-    fetch('ajax_matieres.php', {
+    fetch(AJAX_MATIERES_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -338,7 +361,7 @@ function syncCdeEnCours(codeMP, rowid) {
         button.innerHTML = '...';
     }
     
-    fetch('ajax_matieres.php', {
+    fetch(AJAX_MATIERES_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -429,9 +452,13 @@ function updateRowReste(rowid) {
             
             // Appliquer ou retirer le style d'alerte
             if (isStockAlert) {
-                cell.classList.add('stock-alert');
+                cell.classList.add('reste-alert');
+                cell.style.color = '#c62828';
+                cell.style.fontWeight = 'bold';
             } else {
-                cell.classList.remove('stock-alert');
+                cell.classList.remove('reste-alert');
+                cell.style.color = '';
+                cell.style.fontWeight = '';
             }
         }
     }
@@ -443,19 +470,41 @@ function updateRowReste(rowid) {
 function updateRowDesyncStatus(rowid) {
     const matiere = matieresData.find(m => m.rowid == rowid);
     if (!matiere) return;
-    
+
     const row = document.querySelector(`tr[data-rowid="${rowid}"]`);
     if (row) {
         const isDesync = Math.abs(matiere.cde_en_cours - matiere.cde_en_cours_date) > 0.01;
         const reste = parseFloat(matiere.stock) - parseFloat(matiere.cde_en_cours_date);
         const isStockAlert = reste <= 0;
-        
-        // Priorité: désynchronisation > stock alert
-        row.classList.remove('row-desync', 'stock-alert');
+
+        // Classes cumulables
+        row.classList.remove('row-desync', 'row-stock-alert');
         if (isDesync) {
             row.classList.add('row-desync');
-        } else if (isStockAlert) {
-            row.classList.add('stock-alert');
+        }
+        if (isStockAlert) {
+            row.classList.add('row-stock-alert');
+        }
+
+        // Style inline en complément des classes CSS
+        if (isStockAlert) {
+            row.style.backgroundColor = '#ffebee';
+        } else if (isDesync) {
+            row.style.backgroundColor = '#fff3e0';
+        } else {
+            row.style.backgroundColor = '';
+        }
+
+        // CDE EN COURS en rouge gras si désynchronisé
+        const cdeCell = row.querySelector('td[data-field="cde_en_cours"]');
+        if (cdeCell) {
+            if (isDesync) {
+                cdeCell.style.color = '#c62828';
+                cdeCell.style.fontWeight = 'bold';
+            } else {
+                cdeCell.style.color = '';
+                cdeCell.style.fontWeight = '';
+            }
         }
     }
 }

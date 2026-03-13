@@ -600,8 +600,6 @@ if ($planned_cards === false) {
 
 .row-stock-alert td {
     background-color: inherit !important;
-    color: #c62828;
-    font-weight: bold;
 }
 
 /* Cellule reste en alerte */

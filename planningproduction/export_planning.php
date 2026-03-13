@@ -613,7 +613,7 @@ if ($data === false && $type !== 'global') {
 
     .numeric-cell { text-align: right; font-weight: 500; }
     .row-stock-alert { background-color: #ffebee !important; }
-    .row-stock-alert td { background-color: inherit !important; color: #c62828; font-weight: bold; }
+    .row-stock-alert td { background-color: inherit !important; }
     .reste-alert { color: #c62828 !important; font-weight: bold !important; }
     .row-desync { background-color: #fff3e0 !important; }
     .row-desync td { background-color: inherit !important; }
