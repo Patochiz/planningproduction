@@ -946,9 +946,18 @@ if ($data === false && $type !== 'global') {
 
         // Remplir les infos affichées
         document.getElementById('editCurrentTitle').textContent       = btn.dataset.client   || '-';
-        document.getElementById('editCurrentClient').textContent      = btn.dataset.commande || '-';
         document.getElementById('editCurrentRefChantier').textContent = btn.dataset.ref      || '-';
         document.getElementById('editCurrentOrder').textContent       = btn.dataset.produit  || '-';
+
+        // Référence commande : lien cliquable si URL disponible
+        var clientEl = document.getElementById('editCurrentClient');
+        var commandeText = btn.dataset.commande || '-';
+        var commandeUrl  = btn.dataset.commandeUrl || '';
+        if (commandeUrl) {
+            clientEl.innerHTML = '<a href="' + commandeUrl + '" target="_blank" style="color:#3498db;text-decoration:none;font-weight:600;">' + commandeText + ' 🔗</a>';
+        } else {
+            clientEl.textContent = commandeText;
+        }
 
         // Remplir les champs du formulaire
         document.getElementById('editMatiere').value          = btn.dataset.matiere      || '';
@@ -1184,6 +1193,7 @@ function renderCardsTable($cards, $langs)
         $btn_data  = ' data-id="' . (int)($card['fk_commandedet'] ?? 0) . '"';
         $btn_data .= ' data-client="' . htmlspecialchars($card['client'] ?? '', ENT_QUOTES) . '"';
         $btn_data .= ' data-commande="' . htmlspecialchars(($card['commande_ref'] ?? '') . (!empty($card['version']) ? ' ' . $card['version'] : ''), ENT_QUOTES) . '"';
+        $btn_data .= ' data-commande-url="' . htmlspecialchars(DOL_URL_ROOT . '/commande/card.php?id=' . (int)($card['fk_commande'] ?? 0), ENT_QUOTES) . '"';
         $btn_data .= ' data-ref="' . htmlspecialchars($card['ref_chantier'] ?? '', ENT_QUOTES) . '"';
         $btn_data .= ' data-produit="' . htmlspecialchars((!empty($card['produit_ref']) ? $card['produit_ref'] : ($card['produit'] ?? '')), ENT_QUOTES) . '"';
         $btn_data .= ' data-matiere="' . htmlspecialchars($card['matiere'] ?? '', ENT_QUOTES) . '"';
@@ -1345,6 +1355,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 $btn_data  = ' data-id="' . (int)($card['fk_commandedet'] ?? 0) . '"';
                 $btn_data .= ' data-client="' . htmlspecialchars($card['client'] ?? '', ENT_QUOTES) . '"';
                 $btn_data .= ' data-commande="' . htmlspecialchars(($card['commande_ref'] ?? '') . (!empty($card['version']) ? ' ' . $card['version'] : ''), ENT_QUOTES) . '"';
+                $btn_data .= ' data-commande-url="' . htmlspecialchars(DOL_URL_ROOT . '/commande/card.php?id=' . (int)($card['fk_commande'] ?? 0), ENT_QUOTES) . '"';
                 $btn_data .= ' data-ref="' . htmlspecialchars($card['ref_chantier'] ?? '', ENT_QUOTES) . '"';
                 $btn_data .= ' data-produit="' . htmlspecialchars((!empty($card['produit_ref']) ? $card['produit_ref'] : ($card['produit'] ?? '')), ENT_QUOTES) . '"';
                 $btn_data .= ' data-matiere="' . htmlspecialchars($card['matiere'] ?? '', ENT_QUOTES) . '"';
