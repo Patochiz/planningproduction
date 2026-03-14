@@ -302,75 +302,86 @@ if ($data === false && $type !== 'global') {
     }
     .btn-popup-row:hover { background: #2980b9; }
 
-    /* Modal d'édition carte */
-    .card-edit-modal {
-        display: none;
+    /* === MODAL D'ÉDITION (identique à planning.php) === */
+    .edit-modal {
         position: fixed;
-        z-index: 10001;
-        left: 0; top: 0;
+        top: 0; left: 0;
         width: 100%; height: 100%;
-        background-color: rgba(0,0,0,0.6);
-        backdrop-filter: blur(3px);
+        background: rgba(0,0,0,0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 10002;
     }
-    .card-edit-modal-content {
-        position: relative;
-        background: #fefefe;
-        margin: 5% auto;
-        padding: 0;
+    .edit-modal.show { display: flex; }
+    .edit-modal-content {
+        background: white;
         border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        padding: 24px;
         width: 90%;
-        max-width: 550px;
-        animation: fadeInUp 0.3s ease-out;
+        max-width: 500px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        transform: scale(0.9);
+        transition: transform 0.2s ease;
     }
-    .card-edit-modal-header {
-        background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
-        color: white;
-        padding: 18px 22px;
+    .edit-modal.show .edit-modal-content { transform: scale(1); }
+    .edit-modal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-radius: 12px 12px 0 0;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #ecf0f1;
     }
-    .card-edit-modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
-    .card-edit-modal-close {
-        background: none; border: none; color: white;
-        font-size: 26px; font-weight: bold; cursor: pointer;
-        width: 28px; height: 28px; border-radius: 50%;
+    .edit-modal-title { font-size: 20px; font-weight: 600; color: #2c3e50; margin: 0; }
+    .edit-modal-close {
+        background: none; border: none;
+        font-size: 24px; color: #95a5a6; cursor: pointer;
+        padding: 0; width: 30px; height: 30px;
         display: flex; align-items: center; justify-content: center;
-        transition: all 0.2s;
+        border-radius: 6px; transition: all 0.2s;
     }
-    .card-edit-modal-close:hover { background: rgba(255,255,255,0.2); transform: rotate(90deg); }
-    .card-edit-modal-body { padding: 20px 22px; }
-    .card-edit-info {
-        background: #f8f9fa; border-radius: 6px;
-        padding: 12px 15px; margin-bottom: 18px;
-        font-size: 13px; color: #555;
+    .edit-modal-close:hover { background: #ecf0f1; color: #2c3e50; }
+    .edit-form-group { margin-bottom: 20px; }
+    .edit-form-label { display: block; font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 14px; }
+    .edit-form-input {
+        width: 100%; padding: 12px;
+        border: 2px solid #ecf0f1; border-radius: 8px;
+        font-size: 14px; background: white; transition: border-color 0.2s;
+    }
+    .edit-form-input:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
+    .edit-form-select {
+        width: 100%; padding: 12px;
+        border: 2px solid #ecf0f1; border-radius: 8px;
+        font-size: 14px; background: white; cursor: pointer; transition: border-color 0.2s;
+    }
+    .edit-form-select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.1); }
+    .edit-current-values {
+        background: #f8f9fa; padding: 15px;
+        border-radius: 8px; margin-bottom: 20px;
         border-left: 4px solid #3498db;
     }
-    .card-edit-info strong { display: block; color: #2c3e50; margin-bottom: 4px; font-size: 14px; }
-    .card-edit-form-group { margin-bottom: 14px; }
-    .card-edit-form-group label {
-        display: block; font-size: 12px; font-weight: 600;
-        color: #555; margin-bottom: 5px; text-transform: uppercase;
+    .edit-current-title { font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 14px; }
+    .edit-current-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; font-size: 13px; }
+    .edit-current-label { color: #7f8c8d; font-weight: 500; }
+    .edit-current-value { color: #2c3e50; font-weight: 500; }
+    .edit-modal-actions {
+        display: flex; gap: 12px; justify-content: flex-end;
+        margin-top: 24px; padding-top: 20px; border-top: 1px solid #ecf0f1;
     }
-    .card-edit-form-group input,
-    .card-edit-form-group select {
-        width: 100%; padding: 8px 10px; border: 1px solid #ddd;
-        border-radius: 4px; font-size: 13px; box-sizing: border-box;
-        transition: border-color 0.2s;
-    }
-    .card-edit-form-group input:focus,
-    .card-edit-form-group select:focus {
-        outline: none; border-color: #3498db;
-        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
-    }
-    .card-edit-modal-actions {
-        background: #f8f9fa; padding: 14px 22px;
-        border-top: 1px solid #e0e0e0;
-        display: flex; justify-content: flex-end; gap: 10px;
-        border-radius: 0 0 12px 12px;
-    }
+    .edit-btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; min-width: 100px; }
+    .edit-btn-cancel { background: #ecf0f1; color: #7f8c8d; }
+    .edit-btn-cancel:hover { background: #bdc3c7; color: #2c3e50; }
+    .edit-btn-save { background: #27ae60; color: white; }
+    .edit-btn-save:hover { background: #229954; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(39,174,96,0.3); }
+    .edit-badge-preview { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-left: 8px; }
+    .edit-badge-preview.green { background: #d5f4e6; color: #27ae60; }
+    .edit-badge-preview.orange { background: #fff3cd; color: #f39c12; }
+    .edit-badge-preview.red { background: #f8d7da; color: #e74c3c; }
+    .edit-badge-preview.blue { background: #e3f2fd; color: #3498db; }
+
     .no-print { }
 
     /* Badges de statut */
@@ -485,6 +496,7 @@ if ($data === false && $type !== 'global') {
         .col-statuts { width: 8%; }
         .col-actions { display: none !important; }
         .no-print { display: none !important; }
+        .edit-modal { display: none !important; }
     }
     
     /* Boutons d'action (cachés à l'impression) */
@@ -811,25 +823,43 @@ if ($data === false && $type !== 'global') {
         </div>
     <?php endif; ?>
 
-    <!-- MODAL ÉDITION CARTE -->
-    <div class="card-edit-modal" id="cardEditModal">
-        <div class="card-edit-modal-content">
-            <div class="card-edit-modal-header">
-                <h3>✏️ Éditer la carte</h3>
-                <button class="card-edit-modal-close" onclick="closeCardModal()">×</button>
+    <!-- MODAL D'ÉDITION (identique à planning.php) -->
+    <div class="edit-modal" id="editModal">
+        <div class="edit-modal-content">
+            <div class="edit-modal-header">
+                <h3 class="edit-modal-title">✏️ Éditer la carte</h3>
+                <button class="edit-modal-close" onclick="closeEditModal()">×</button>
             </div>
-            <div class="card-edit-modal-body">
-                <div class="card-edit-info">
-                    <strong id="cardEditTitle">-</strong>
-                    <span id="cardEditSub" style="font-size:12px;color:#777;"></span>
+
+            <div class="edit-current-values">
+                <div class="edit-current-title">Carte actuelle</div>
+                <div class="edit-current-item">
+                    <span class="edit-current-label">Client :</span>
+                    <span class="edit-current-value" id="editCurrentTitle">-</span>
                 </div>
-                <div class="card-edit-form-group">
-                    <label for="cardEditMatiere">Matière</label>
-                    <input type="text" id="cardEditMatiere" placeholder="Saisir la matière...">
+                <div class="edit-current-item">
+                    <span class="edit-current-label">Référence :</span>
+                    <span class="edit-current-value" id="editCurrentClient">-</span>
                 </div>
-                <div class="card-edit-form-group">
-                    <label for="cardEditMpStatus">Statut matière première</label>
-                    <select id="cardEditMpStatus">
+                <div class="edit-current-item">
+                    <span class="edit-current-label">Réf. chantier :</span>
+                    <span class="edit-current-value" id="editCurrentRefChantier">-</span>
+                </div>
+                <div class="edit-current-item">
+                    <span class="edit-current-label">Produit :</span>
+                    <span class="edit-current-value" id="editCurrentOrder">-</span>
+                </div>
+            </div>
+
+            <form id="editForm">
+                <div class="edit-form-group">
+                    <label class="edit-form-label" for="editMatiere">Matière</label>
+                    <input type="text" id="editMatiere" class="edit-form-input" placeholder="Saisir la matière...">
+                </div>
+
+                <div class="edit-form-group">
+                    <label class="edit-form-label" for="editMpStatus">Statut matière première</label>
+                    <select id="editMpStatus" class="edit-form-select" onchange="updateBadgePreview('mp', this.value)">
                         <option value="">-- Sélectionner --</option>
                         <option value="MP Ok,MP Ok">MP Ok</option>
                         <option value="MP en attente,MP en attente">MP en attente</option>
@@ -838,27 +868,32 @@ if ($data === false && $type !== 'global') {
                         <option value="PROFORMA A VALIDER,PROFORMA A VALIDER">PROFORMA A VALIDER</option>
                         <option value="MàJ AIRTABLE à Faire,MàJ AIRTABLE à Faire">MàJ AIRTABLE à Faire</option>
                     </select>
+                    <span class="edit-badge-preview" id="mpStatusPreview"></span>
                 </div>
-                <div class="card-edit-form-group">
-                    <label for="cardEditProdStatus">Statut production</label>
-                    <select id="cardEditProdStatus">
+
+                <div class="edit-form-group">
+                    <label class="edit-form-label" for="editProductionStatus">Statut production</label>
+                    <select id="editProductionStatus" class="edit-form-select">
                         <option value="À PRODUIRE">À PRODUIRE</option>
                         <option value="EN COURS">EN COURS</option>
                         <option value="À TERMINER">À TERMINER</option>
                         <option value="BON POUR EXPÉDITION">BON POUR EXPÉDITION</option>
                     </select>
                 </div>
-                <div class="card-edit-form-group">
-                    <label for="cardEditPostlaquage">À peindre (fond jaune)</label>
-                    <select id="cardEditPostlaquage">
+
+                <div class="edit-form-group">
+                    <label class="edit-form-label" for="editPeindre">À peindre</label>
+                    <select id="editPeindre" class="edit-form-select">
                         <option value="non">Non</option>
                         <option value="oui">Oui</option>
                     </select>
+                    <small style="color:#7f8c8d;font-size:12px;margin-top:5px;display:block;">Si fond jaune fluo</small>
                 </div>
-            </div>
-            <div class="card-edit-modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeCardModal()">Annuler</button>
-                <button type="button" class="btn btn-primary" onclick="saveCardModal()">💾 Sauvegarder</button>
+            </form>
+
+            <div class="edit-modal-actions">
+                <button type="button" class="edit-btn edit-btn-cancel" onclick="closeEditModal()">Annuler</button>
+                <button type="button" class="edit-btn edit-btn-save" onclick="saveCardEdit()">Sauvegarder</button>
             </div>
         </div>
     </div>
@@ -900,49 +935,94 @@ if ($data === false && $type !== 'global') {
     <script type="text/javascript" src="<?php echo dol_buildpath('/planningproduction/js/matieres.js', 1); ?>?v=<?php echo time(); ?>"></script>
 
     <script type="text/javascript">
-    var _cardEditId = 0;
+    // === IDENTIQUE À modal.js / planning.php ===
 
+    var currentEditCard = null;
+
+    // Ouvre le modal depuis un bouton de ligne (data-attributes)
     function openCardModal(btn) {
-        _cardEditId = parseInt(btn.dataset.id) || 0;
-        var client  = btn.dataset.client || '-';
-        var commande = btn.dataset.commande || '';
-        var ref     = btn.dataset.ref || '';
-        var produit = btn.dataset.produit || '-';
+        // On construit un objet "carte virtuelle" que saveCardEdit() peut utiliser
+        currentEditCard = { dataset: { fkCommandedet: btn.dataset.id } };
 
-        // En-tête info
-        document.getElementById('cardEditTitle').textContent = client + (commande ? ' — ' + commande : '');
-        document.getElementById('cardEditSub').textContent   = (ref ? 'Réf: ' + ref + '  ' : '') + (produit ? '· ' + produit : '');
+        // Remplir les infos affichées
+        document.getElementById('editCurrentTitle').textContent       = btn.dataset.client   || '-';
+        document.getElementById('editCurrentClient').textContent      = btn.dataset.commande || '-';
+        document.getElementById('editCurrentRefChantier').textContent = btn.dataset.ref      || '-';
+        document.getElementById('editCurrentOrder').textContent       = btn.dataset.produit  || '-';
 
-        // Champs éditables
-        document.getElementById('cardEditMatiere').value     = btn.dataset.matiere || '';
-        document.getElementById('cardEditMpStatus').value    = btn.dataset.statutMp || '';
-        document.getElementById('cardEditProdStatus').value  = btn.dataset.statutProd || 'À PRODUIRE';
-        document.getElementById('cardEditPostlaquage').value = btn.dataset.postlaquage || 'non';
+        // Remplir les champs du formulaire
+        document.getElementById('editMatiere').value          = btn.dataset.matiere      || '';
+        document.getElementById('editMpStatus').value         = btn.dataset.statutMp     || '';
+        document.getElementById('editProductionStatus').value = btn.dataset.statutProd   || 'À PRODUIRE';
+        document.getElementById('editPeindre').value          = btn.dataset.postlaquage  || 'non';
 
-        document.getElementById('cardEditModal').style.display = 'block';
+        updateBadgePreview('mp', document.getElementById('editMpStatus').value);
+        document.getElementById('editModal').classList.add('show');
     }
 
-    function closeCardModal() {
-        document.getElementById('cardEditModal').style.display = 'none';
-        _cardEditId = 0;
+    function closeEditModal() {
+        var modal = document.getElementById('editModal');
+        if (!modal) return;
+        modal.classList.remove('show');
+        currentEditCard = null;
+        var form = document.getElementById('editForm');
+        if (form) form.reset();
+        document.querySelectorAll('.edit-badge-preview').forEach(function(b) {
+            b.textContent = '';
+            b.className = 'edit-badge-preview';
+        });
     }
 
-    function saveCardModal() {
-        if (!_cardEditId) {
-            alert('Erreur : identifiant de carte manquant.');
+    function updateBadgePreview(type, value) {
+        var previewElement = document.getElementById(type + 'StatusPreview');
+        if (!previewElement) return;
+        previewElement.className = 'edit-badge-preview';
+        if (type === 'mp') {
+            switch (value) {
+                case 'MP Ok,MP Ok':
+                    previewElement.textContent = 'MP OK';
+                    previewElement.classList.add('green'); break;
+                case 'MP en attente,MP en attente':
+                    previewElement.textContent = 'MP EN ATTENTE';
+                    previewElement.classList.add('red'); break;
+                case 'MP Manquante,MP Manquante':
+                    previewElement.textContent = 'MP MANQUANTE';
+                    previewElement.classList.add('red'); break;
+                case 'BL A FAIRE,BL A FAIRE':
+                    previewElement.textContent = 'BL A FAIRE';
+                    previewElement.classList.add('red'); break;
+                case 'PROFORMA A VALIDER,PROFORMA A VALIDER':
+                    previewElement.textContent = 'PROFORMA A VALIDER';
+                    previewElement.classList.add('red'); break;
+                case 'MàJ AIRTABLE à Faire,MàJ AIRTABLE à Faire':
+                    previewElement.textContent = 'MAJ AIRTABLE A FAIRE';
+                    previewElement.classList.add('red'); break;
+                default:
+                    previewElement.textContent = '';
+            }
+        }
+    }
+
+    function saveCardEdit() {
+        if (!currentEditCard) return;
+        var fkCommandedet    = currentEditCard.dataset.fkCommandedet;
+        var matiereValue     = document.getElementById('editMatiere').value.trim();
+        var mpStatus         = document.getElementById('editMpStatus').value;
+        var prodStatus       = document.getElementById('editProductionStatus').value;
+        var peindreStatus    = document.getElementById('editPeindre').value;
+
+        if (!fkCommandedet) {
+            showToast('Erreur : données de la carte manquantes', 'error');
             return;
         }
-        var saveBtn = document.querySelector('#cardEditModal .btn-primary');
-        saveBtn.disabled = true;
-        saveBtn.textContent = '⏳ Enregistrement...';
 
         var formData = new FormData();
         formData.append('action', 'update_card');
-        formData.append('fk_commandedet', _cardEditId);
-        formData.append('matiere',        document.getElementById('cardEditMatiere').value.trim());
-        formData.append('statut_mp',      document.getElementById('cardEditMpStatus').value);
-        formData.append('statut_prod',    document.getElementById('cardEditProdStatus').value);
-        formData.append('postlaquage',    document.getElementById('cardEditPostlaquage').value);
+        formData.append('fk_commandedet', fkCommandedet);
+        formData.append('matiere',        matiereValue);
+        formData.append('statut_mp',      mpStatus);
+        formData.append('statut_prod',    prodStatus);
+        formData.append('postlaquage',    peindreStatus);
         if (window.DOLIBARR_PLANNING_CONFIG && window.DOLIBARR_PLANNING_CONFIG.current_token) {
             formData.append('token', window.DOLIBARR_PLANNING_CONFIG.current_token);
         }
@@ -951,31 +1031,41 @@ if ($data === false && $type !== 'global') {
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.success) {
-                    closeCardModal();
-                    setTimeout(function() { window.location.reload(); }, 500);
+                    showToast('Carte mise à jour', 'success');
+                    closeEditModal();
+                    setTimeout(function() { window.location.reload(); }, 1000);
                 } else {
-                    alert('Erreur : ' + (data.error || 'Sauvegarde échouée'));
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = '💾 Sauvegarder';
+                    showToast(data.error || 'Erreur de sauvegarde', 'error');
                 }
             })
             .catch(function(err) {
-                alert('Erreur réseau : ' + err);
-                saveBtn.disabled = false;
-                saveBtn.textContent = '💾 Sauvegarder';
+                console.error('Error:', err);
+                showToast('Erreur de sauvegarde', 'error');
             });
     }
 
+    function showToast(message, type) {
+        var existing = document.querySelector('.export-toast');
+        if (existing) existing.remove();
+        var toast = document.createElement('div');
+        toast.className = 'export-toast';
+        toast.textContent = message;
+        toast.style.cssText = 'position:fixed;top:80px;right:20px;padding:12px 20px;border-radius:8px;color:white;font-weight:600;z-index:20000;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+        toast.style.background = (type === 'error') ? '#e74c3c' : '#27ae60';
+        document.body.appendChild(toast);
+        setTimeout(function() { if (toast.parentNode) toast.remove(); }, 3000);
+    }
+
     // Fermer en cliquant en dehors
-    document.getElementById('cardEditModal').addEventListener('click', function(e) {
-        if (e.target === this) closeCardModal();
+    document.addEventListener('click', function(e) {
+        var modal = document.getElementById('editModal');
+        if (modal && e.target === modal) closeEditModal();
     });
 
     // Fermer avec Escape
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && document.getElementById('cardEditModal').style.display === 'block') {
-            closeCardModal();
-        }
+        var modal = document.getElementById('editModal');
+        if (e.key === 'Escape' && modal && modal.classList.contains('show')) closeEditModal();
     });
     </script>
 
