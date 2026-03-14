@@ -278,14 +278,100 @@ if ($data === false && $type !== 'global') {
     }
 
     /* Colonnes spécifiques - NOUVEL ORDRE */
-    .col-commande { width: 15%; }
+    .col-commande { width: 13%; }
     .col-ref { width: 12%; }
     .col-delai { width: 4%; }
-    .col-produit { width: 25%; }
+    .col-produit { width: 23%; }
     .col-matiere { width: 14%; }
     .col-qte { width: 8%; text-align: right; }
     .col-livraison { width: 12%; }
-    .col-statuts { width: 10%; }
+    .col-statuts { width: 9%; }
+    .col-actions { width: 5%; text-align: center; }
+
+    /* Bouton popup par ligne */
+    .btn-popup-row {
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 3px 8px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: background 0.2s;
+        white-space: nowrap;
+    }
+    .btn-popup-row:hover { background: #2980b9; }
+
+    /* Modal d'édition carte */
+    .card-edit-modal {
+        display: none;
+        position: fixed;
+        z-index: 10001;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.6);
+        backdrop-filter: blur(3px);
+    }
+    .card-edit-modal-content {
+        position: relative;
+        background: #fefefe;
+        margin: 5% auto;
+        padding: 0;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        width: 90%;
+        max-width: 550px;
+        animation: fadeInUp 0.3s ease-out;
+    }
+    .card-edit-modal-header {
+        background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+        color: white;
+        padding: 18px 22px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 12px 12px 0 0;
+    }
+    .card-edit-modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
+    .card-edit-modal-close {
+        background: none; border: none; color: white;
+        font-size: 26px; font-weight: bold; cursor: pointer;
+        width: 28px; height: 28px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s;
+    }
+    .card-edit-modal-close:hover { background: rgba(255,255,255,0.2); transform: rotate(90deg); }
+    .card-edit-modal-body { padding: 20px 22px; }
+    .card-edit-info {
+        background: #f8f9fa; border-radius: 6px;
+        padding: 12px 15px; margin-bottom: 18px;
+        font-size: 13px; color: #555;
+        border-left: 4px solid #3498db;
+    }
+    .card-edit-info strong { display: block; color: #2c3e50; margin-bottom: 4px; font-size: 14px; }
+    .card-edit-form-group { margin-bottom: 14px; }
+    .card-edit-form-group label {
+        display: block; font-size: 12px; font-weight: 600;
+        color: #555; margin-bottom: 5px; text-transform: uppercase;
+    }
+    .card-edit-form-group input,
+    .card-edit-form-group select {
+        width: 100%; padding: 8px 10px; border: 1px solid #ddd;
+        border-radius: 4px; font-size: 13px; box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+    .card-edit-form-group input:focus,
+    .card-edit-form-group select:focus {
+        outline: none; border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    .card-edit-modal-actions {
+        background: #f8f9fa; padding: 14px 22px;
+        border-top: 1px solid #e0e0e0;
+        display: flex; justify-content: flex-end; gap: 10px;
+        border-radius: 0 0 12px 12px;
+    }
+    .no-print { }
 
     /* Badges de statut */
     .status-badge {
@@ -390,13 +476,15 @@ if ($data === false && $type !== 'global') {
         }
 
         .col-commande { width: 15%; }
-        .col-ref { width: 12%; }
+        .col-ref { width: 13%; }
         .col-delai { width: 4%; }
         .col-produit { width: 25%; }
-        .col-matiere { width: 14%; }
+        .col-matiere { width: 15%; }
         .col-qte { width: 8%; text-align: right; }
         .col-livraison { width: 12%; }
-        .col-statuts { width: 10%; }
+        .col-statuts { width: 8%; }
+        .col-actions { display: none !important; }
+        .no-print { display: none !important; }
     }
     
     /* Boutons d'action (cachés à l'impression) */
@@ -723,6 +811,58 @@ if ($data === false && $type !== 'global') {
         </div>
     <?php endif; ?>
 
+    <!-- MODAL ÉDITION CARTE -->
+    <div class="card-edit-modal" id="cardEditModal">
+        <div class="card-edit-modal-content">
+            <div class="card-edit-modal-header">
+                <h3>✏️ Éditer la carte</h3>
+                <button class="card-edit-modal-close" onclick="closeCardModal()">×</button>
+            </div>
+            <div class="card-edit-modal-body">
+                <div class="card-edit-info">
+                    <strong id="cardEditTitle">-</strong>
+                    <span id="cardEditSub" style="font-size:12px;color:#777;"></span>
+                </div>
+                <div class="card-edit-form-group">
+                    <label for="cardEditMatiere">Matière</label>
+                    <input type="text" id="cardEditMatiere" placeholder="Saisir la matière...">
+                </div>
+                <div class="card-edit-form-group">
+                    <label for="cardEditMpStatus">Statut matière première</label>
+                    <select id="cardEditMpStatus">
+                        <option value="">-- Sélectionner --</option>
+                        <option value="MP Ok,MP Ok">MP Ok</option>
+                        <option value="MP en attente,MP en attente">MP en attente</option>
+                        <option value="MP Manquante,MP Manquante">MP Manquante</option>
+                        <option value="BL A FAIRE,BL A FAIRE">BL A FAIRE</option>
+                        <option value="PROFORMA A VALIDER,PROFORMA A VALIDER">PROFORMA A VALIDER</option>
+                        <option value="MàJ AIRTABLE à Faire,MàJ AIRTABLE à Faire">MàJ AIRTABLE à Faire</option>
+                    </select>
+                </div>
+                <div class="card-edit-form-group">
+                    <label for="cardEditProdStatus">Statut production</label>
+                    <select id="cardEditProdStatus">
+                        <option value="À PRODUIRE">À PRODUIRE</option>
+                        <option value="EN COURS">EN COURS</option>
+                        <option value="À TERMINER">À TERMINER</option>
+                        <option value="BON POUR EXPÉDITION">BON POUR EXPÉDITION</option>
+                    </select>
+                </div>
+                <div class="card-edit-form-group">
+                    <label for="cardEditPostlaquage">À peindre (fond jaune)</label>
+                    <select id="cardEditPostlaquage">
+                        <option value="non">Non</option>
+                        <option value="oui">Oui</option>
+                    </select>
+                </div>
+            </div>
+            <div class="card-edit-modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeCardModal()">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="saveCardModal()">💾 Sauvegarder</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL MATIÈRES PREMIÈRES -->
     <div class="matiere-modal" id="matieresModal">
         <div class="matiere-modal-content">
@@ -759,6 +899,86 @@ if ($data === false && $type !== 'global') {
     ?>
     <script type="text/javascript" src="<?php echo dol_buildpath('/planningproduction/js/matieres.js', 1); ?>?v=<?php echo time(); ?>"></script>
 
+    <script type="text/javascript">
+    var _cardEditId = 0;
+
+    function openCardModal(btn) {
+        _cardEditId = parseInt(btn.dataset.id) || 0;
+        var client  = btn.dataset.client || '-';
+        var commande = btn.dataset.commande || '';
+        var ref     = btn.dataset.ref || '';
+        var produit = btn.dataset.produit || '-';
+
+        // En-tête info
+        document.getElementById('cardEditTitle').textContent = client + (commande ? ' — ' + commande : '');
+        document.getElementById('cardEditSub').textContent   = (ref ? 'Réf: ' + ref + '  ' : '') + (produit ? '· ' + produit : '');
+
+        // Champs éditables
+        document.getElementById('cardEditMatiere').value     = btn.dataset.matiere || '';
+        document.getElementById('cardEditMpStatus').value    = btn.dataset.statutMp || '';
+        document.getElementById('cardEditProdStatus').value  = btn.dataset.statutProd || 'À PRODUIRE';
+        document.getElementById('cardEditPostlaquage').value = btn.dataset.postlaquage || 'non';
+
+        document.getElementById('cardEditModal').style.display = 'block';
+    }
+
+    function closeCardModal() {
+        document.getElementById('cardEditModal').style.display = 'none';
+        _cardEditId = 0;
+    }
+
+    function saveCardModal() {
+        if (!_cardEditId) {
+            alert('Erreur : identifiant de carte manquant.');
+            return;
+        }
+        var saveBtn = document.querySelector('#cardEditModal .btn-primary');
+        saveBtn.disabled = true;
+        saveBtn.textContent = '⏳ Enregistrement...';
+
+        var formData = new FormData();
+        formData.append('action', 'update_card');
+        formData.append('fk_commandedet', _cardEditId);
+        formData.append('matiere',        document.getElementById('cardEditMatiere').value.trim());
+        formData.append('statut_mp',      document.getElementById('cardEditMpStatus').value);
+        formData.append('statut_prod',    document.getElementById('cardEditProdStatus').value);
+        formData.append('postlaquage',    document.getElementById('cardEditPostlaquage').value);
+        if (window.DOLIBARR_PLANNING_CONFIG && window.DOLIBARR_PLANNING_CONFIG.current_token) {
+            formData.append('token', window.DOLIBARR_PLANNING_CONFIG.current_token);
+        }
+
+        fetch('ajax_planning.php', { method: 'POST', body: formData })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    closeCardModal();
+                    setTimeout(function() { window.location.reload(); }, 500);
+                } else {
+                    alert('Erreur : ' + (data.error || 'Sauvegarde échouée'));
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = '💾 Sauvegarder';
+                }
+            })
+            .catch(function(err) {
+                alert('Erreur réseau : ' + err);
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 Sauvegarder';
+            });
+    }
+
+    // Fermer en cliquant en dehors
+    document.getElementById('cardEditModal').addEventListener('click', function(e) {
+        if (e.target === this) closeCardModal();
+    });
+
+    // Fermer avec Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('cardEditModal').style.display === 'block') {
+            closeCardModal();
+        }
+    });
+    </script>
+
 </body>
 </html>
 
@@ -785,10 +1005,11 @@ function renderCardsTable($cards, $langs)
     echo '<th class="col-qte">Quantité</th>';
     echo '<th class="col-livraison">Livraison</th>';
     echo '<th class="col-statuts">Statuts</th>';
+    echo '<th class="col-actions no-print"></th>';
     echo '</tr>';
     echo '</thead>';
     echo '<tbody>';
-    
+
     foreach ($cards as $card) {
         // Ligne jaune si à peindre
         $paint_class = (!empty($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' paint-required' : '';
@@ -835,13 +1056,13 @@ function renderCardsTable($cards, $langs)
 
         // Quantité
         echo '<td style="text-align:right">' . htmlspecialchars(number_format(floatval($card['quantity'] ?? 0), 2, ',', '') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
-        
+
         // Livraison
         echo '<td>' . htmlspecialchars($card['delivery'] ?? '-') . '</td>';
-        
+
         // Statuts
         echo '<td class="status-cell">';
-        
+
         // Statut MP
         if (!empty($card['statut_mp'])) {
             $mp_parts = explode(',', $card['statut_mp']);
@@ -852,7 +1073,7 @@ function renderCardsTable($cards, $langs)
                 echo '<span class="status-badge badge-mp-waiting">' . htmlspecialchars($mp_text) . '</span>';
             }
         }
-        
+
         // Statut AR
         if (!empty($card['statut_ar'])) {
             if ($card['statut_ar'] == 'AR VALIDÉ') {
@@ -861,16 +1082,29 @@ function renderCardsTable($cards, $langs)
                 echo '<span class="status-badge badge-ar-waiting">' . htmlspecialchars($card['statut_ar']) . '</span>';
             }
         }
-        
+
         // Statut production
         if (!empty($card['statut_prod'])) {
             echo '<span class="status-badge badge-production">' . htmlspecialchars($card['statut_prod']) . '</span>';
         }
-        
+
         echo '</td>';
+
+        // Bouton popup
+        $btn_data  = ' data-id="' . (int)($card['fk_commandedet'] ?? 0) . '"';
+        $btn_data .= ' data-client="' . htmlspecialchars($card['client'] ?? '', ENT_QUOTES) . '"';
+        $btn_data .= ' data-commande="' . htmlspecialchars(($card['commande_ref'] ?? '') . (!empty($card['version']) ? ' ' . $card['version'] : ''), ENT_QUOTES) . '"';
+        $btn_data .= ' data-ref="' . htmlspecialchars($card['ref_chantier'] ?? '', ENT_QUOTES) . '"';
+        $btn_data .= ' data-produit="' . htmlspecialchars((!empty($card['produit_ref']) ? $card['produit_ref'] : ($card['produit'] ?? '')), ENT_QUOTES) . '"';
+        $btn_data .= ' data-matiere="' . htmlspecialchars($card['matiere'] ?? '', ENT_QUOTES) . '"';
+        $btn_data .= ' data-statut-mp="' . htmlspecialchars($card['statut_mp'] ?? '', ENT_QUOTES) . '"';
+        $btn_data .= ' data-statut-prod="' . htmlspecialchars($card['statut_prod'] ?? '', ENT_QUOTES) . '"';
+        $btn_data .= ' data-postlaquage="' . htmlspecialchars($card['postlaquage'] ?? 'non', ENT_QUOTES) . '"';
+        echo '<td class="no-print"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button></td>';
+
         echo '</tr>';
     }
-    
+
     echo '</tbody>';
     echo '</table>';
 }
@@ -915,10 +1149,11 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
         echo '<th class="col-qte">Quantité</th>';
         echo '<th class="col-livraison">Livraison</th>';
         echo '<th class="col-statuts">Statuts</th>';
+        echo '<th class="col-actions no-print"></th>';
         echo '</tr>';
         echo '</thead>';
         echo '<tbody>';
-        
+
         $first_group = true;
         foreach ($groups as $group_name => $cards) {
             // Calculer la quantité totale du groupe
@@ -932,9 +1167,9 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
             }
             $qty_display = ($group_total_qty == intval($group_total_qty)) ? intval($group_total_qty) : $group_total_qty;
 
-            echo '<tr><td colspan="8" class="group-separator"><span class="group-qty-badge">' . $qty_display . ' ' . htmlspecialchars($group_unite) . '</span>📁 ' . htmlspecialchars($group_name) . '</td></tr>';
+            echo '<tr><td colspan="9" class="group-separator"><span class="group-qty-badge">' . $qty_display . ' ' . htmlspecialchars($group_unite) . '</span>📁 ' . htmlspecialchars($group_name) . '</td></tr>';
             $first_group = false;
-            
+
             // Cartes du groupe
             foreach ($cards as $card) {
                 // Ligne jaune si à peindre
@@ -946,7 +1181,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 $border_class = ($mp_ok && $ar_ok) ? ' border-green' : ' border-red';
 
                 echo '<tr class="' . trim($paint_class . $border_class) . '">';
-                
+
                 // Commande (client + numéro/version)
                 $commande_cell = htmlspecialchars($card['client'] ?? '-');
                 $commande_cell .= '<br><small>' . htmlspecialchars($card['commande_ref'] ?? '-');
@@ -961,7 +1196,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
 
                 // Délai
                 echo '<td>' . htmlspecialchars($card['deadline'] ?? '-') . '</td>';
-                
+
                 // Produit (référence + description)
                 $produit = '';
                 $vn_badge = !empty($card['has_vn']) ? ' <span class="badge-vn">+VN</span>' : '';
@@ -976,19 +1211,19 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                     $produit = '-';
                 }
                 echo '<td>' . $produit . '</td>';
-                
+
                 // Matière
                 echo '<td>' . htmlspecialchars($card['matiere'] ?? '-') . '</td>';
-                
+
                 // Quantité
                 echo '<td style="text-align:right">' . htmlspecialchars(number_format(floatval($card['quantity'] ?? 0), 2, ',', '') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
-                
+
                 // Livraison
                 echo '<td>' . htmlspecialchars($card['delivery'] ?? '-') . '</td>';
-                
+
                 // Statuts
                 echo '<td class="status-cell">';
-                
+
                 // Statut MP
                 if (!empty($card['statut_mp'])) {
                     $mp_parts = explode(',', $card['statut_mp']);
@@ -999,7 +1234,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                         echo '<span class="status-badge badge-mp-waiting">' . htmlspecialchars($mp_text) . '</span>';
                     }
                 }
-                
+
                 // Statut AR
                 if (!empty($card['statut_ar'])) {
                     if ($card['statut_ar'] == 'AR VALIDÉ') {
@@ -1008,17 +1243,30 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                         echo '<span class="status-badge badge-ar-waiting">' . htmlspecialchars($card['statut_ar']) . '</span>';
                     }
                 }
-                
+
                 // Statut production
                 if (!empty($card['statut_prod'])) {
                     echo '<span class="status-badge badge-production">' . htmlspecialchars($card['statut_prod']) . '</span>';
                 }
-                
+
                 echo '</td>';
+
+                // Bouton popup
+                $btn_data  = ' data-id="' . (int)($card['fk_commandedet'] ?? 0) . '"';
+                $btn_data .= ' data-client="' . htmlspecialchars($card['client'] ?? '', ENT_QUOTES) . '"';
+                $btn_data .= ' data-commande="' . htmlspecialchars(($card['commande_ref'] ?? '') . (!empty($card['version']) ? ' ' . $card['version'] : ''), ENT_QUOTES) . '"';
+                $btn_data .= ' data-ref="' . htmlspecialchars($card['ref_chantier'] ?? '', ENT_QUOTES) . '"';
+                $btn_data .= ' data-produit="' . htmlspecialchars((!empty($card['produit_ref']) ? $card['produit_ref'] : ($card['produit'] ?? '')), ENT_QUOTES) . '"';
+                $btn_data .= ' data-matiere="' . htmlspecialchars($card['matiere'] ?? '', ENT_QUOTES) . '"';
+                $btn_data .= ' data-statut-mp="' . htmlspecialchars($card['statut_mp'] ?? '', ENT_QUOTES) . '"';
+                $btn_data .= ' data-statut-prod="' . htmlspecialchars($card['statut_prod'] ?? '', ENT_QUOTES) . '"';
+                $btn_data .= ' data-postlaquage="' . htmlspecialchars($card['postlaquage'] ?? 'non', ENT_QUOTES) . '"';
+                echo '<td class="no-print"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button></td>';
+
                 echo '</tr>';
             }
         }
-        
+
         echo '</tbody>';
         echo '</table>';
     }
