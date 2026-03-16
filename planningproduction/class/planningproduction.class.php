@@ -237,10 +237,10 @@ class PlanningProduction extends CommonObject
             $i = 0;
             while ($i < $num) {
                 $obj = $this->db->fetch_object($resql);
-                
+
                 // Construire l'adresse de livraison
                 $delivery_address = $this->getDeliveryAddress($obj->commande_id);
-                
+
                 $card = array(
                     'id' => 'card_' . $statut_filter . '_' . $obj->commandedet_id,
                     'fk_commande' => $obj->commande_id,
@@ -273,7 +273,102 @@ class PlanningProduction extends CommonObject
             dol_syslog(get_class($this)."::getCardsByStatus ".$this->db->lasterror(), LOG_ERR);
             return false;
         }
-        
+
+        // Deuxième requête : commandes sans aucun produit manufacturé → carte "A PRÉPARER"
+        $sql2 = "SELECT cd.rowid as commandedet_id, c.rowid as commande_id, c.ref as commande_ref, ";
+        $sql2 .= "c.fk_soc, s.nom as societe_nom, c.date_creation, ";
+        $sql2 .= "cd.description as produit_description, cd.qty, cd.product_type, ";
+        $sql2 .= "p.ref as produit_ref, p.label as produit_label, ";
+        $sql2 .= "u.short_label as unite, ";
+        $sql2 .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, ";
+        $sql2 .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
+        $sql2 .= "(SELECT cd_titre_ef.ref_chantier ";
+        $sql2 .= " FROM ".MAIN_DB_PREFIX."commandedet cd_titre ";
+        $sql2 .= " LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_titre_ef ON cd_titre.rowid = cd_titre_ef.fk_object ";
+        $sql2 .= " WHERE cd_titre.fk_commande = cd.fk_commande ";
+        $sql2 .= " AND cd_titre.fk_product = 361 ";
+        $sql2 .= " AND cd_titre.rang < cd.rang ";
+        $sql2 .= " ORDER BY cd_titre.rang DESC ";
+        $sql2 .= " LIMIT 1 ";
+        $sql2 .= ") as titre_ref_chantier, ";
+        $sql2 .= "0 as has_vn ";
+        $sql2 .= "FROM ".MAIN_DB_PREFIX."commande c ";
+        $sql2 .= "INNER JOIN ".MAIN_DB_PREFIX."commandedet cd ON c.rowid = cd.fk_commande ";
+        $sql2 .= "    AND cd.rang = (SELECT MIN(cd2.rang) FROM ".MAIN_DB_PREFIX."commandedet cd2 WHERE cd2.fk_commande = c.rowid) ";
+        $sql2 .= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON c.fk_soc = s.rowid ";
+        $sql2 .= "LEFT JOIN ".MAIN_DB_PREFIX."product p ON cd.fk_product = p.rowid ";
+        $sql2 .= "LEFT JOIN ".MAIN_DB_PREFIX."c_units u ON cd.fk_unit = u.rowid ";
+        $sql2 .= "LEFT JOIN ".MAIN_DB_PREFIX."commande_extrafields c_ef ON c.rowid = c_ef.fk_object ";
+        $sql2 .= "LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_ef ON cd.rowid = cd_ef.fk_object ";
+        $sql2 .= "WHERE c.fk_statut = 1 ";
+        $sql2 .= "AND c.facture = 0 ";
+        $sql2 .= "AND c.entity IN (".getEntity('commande').") ";
+        // Commandes sans aucun produit manufacturé (hors Vernis)
+        $sql2 .= "AND NOT EXISTS ( ";
+        $sql2 .= "    SELECT 1 FROM ".MAIN_DB_PREFIX."commandedet cd3 ";
+        $sql2 .= "    INNER JOIN ".MAIN_DB_PREFIX."product p3 ON cd3.fk_product = p3.rowid ";
+        $sql2 .= "    WHERE cd3.fk_commande = c.rowid ";
+        $sql2 .= "    AND p3.finished = 1 ";
+        $sql2 .= "    AND cd3.fk_product != 299 ";
+        $sql2 .= ") ";
+
+        switch ($statut_filter) {
+            case 'unplanned':
+                $sql2 .= " AND NOT EXISTS (SELECT 1 FROM ".MAIN_DB_PREFIX."planningproduction_planning pp WHERE pp.fk_commandedet = cd.rowid)";
+                $sql2 .= " AND (cd_ef.statut_prod IS NULL OR cd_ef.statut_prod = '' OR cd_ef.statut_prod = 'À PRODUIRE' OR cd_ef.statut_prod = 'EN COURS')";
+                break;
+            case 'a_terminer':
+                $sql2 .= " AND cd_ef.statut_prod = 'À TERMINER'";
+                break;
+            case 'a_expedier':
+                $sql2 .= " AND cd_ef.statut_prod = 'BON POUR EXPÉDITION'";
+                break;
+        }
+
+        $sql2 .= " ORDER BY c.date_creation DESC";
+
+        $resql2 = $this->db->query($sql2);
+        if ($resql2) {
+            $num2 = $this->db->num_rows($resql2);
+            $i = 0;
+            while ($i < $num2) {
+                $obj = $this->db->fetch_object($resql2);
+
+                $delivery_address = $this->getDeliveryAddress($obj->commande_id);
+
+                $card = array(
+                    'id' => 'card_' . $statut_filter . '_' . $obj->commandedet_id,
+                    'fk_commande' => $obj->commande_id,
+                    'fk_commandedet' => $obj->commandedet_id,
+                    'commande_ref' => $obj->commande_ref,
+                    'version' => $obj->version ?: 'V1',
+                    'client' => $obj->societe_nom,
+                    'fk_soc' => $obj->fk_soc,
+                    'ref_chantier' => $obj->titre_ref_chantier ?: '-',
+                    'delivery' => $delivery_address,
+                    'deadline' => $obj->delai_liv ?: '-',
+                    'produit' => 'A PRÉPARER',
+                    'produit_ref' => null,
+                    'quantity' => $obj->qty,
+                    'unite' => $obj->unite ?: 'u',
+                    'matiere' => $obj->matiere ?: '-',
+                    'statut_mp' => $obj->statut_mp,
+                    'statut_ar' => $obj->statut_ar,
+                    'statut_prod' => $obj->statut_prod ?: 'À PRODUIRE',
+                    'postlaquage' => $obj->postlaquage,
+                    'has_vn' => false
+                );
+
+                $cards[] = $card;
+                $i++;
+            }
+            $this->db->free($resql2);
+        } else {
+            $this->errors[] = "Error ".$this->db->lasterror();
+            dol_syslog(get_class($this)."::getCardsByStatus (a_preparer) ".$this->db->lasterror(), LOG_ERR);
+            return false;
+        }
+
         return $cards;
     }
 
@@ -405,7 +500,14 @@ class PlanningProduction extends CommonObject
         $sql .= " AND cd_next.rang > cd.rang ";
         $sql .= " ORDER BY cd_next.rang ASC ";
         $sql .= " LIMIT 1 ";
-        $sql .= ") as has_vn ";
+        $sql .= ") as has_vn, ";
+        // Sous-requête pour détecter si la commande possède au moins un produit manufacturé (hors Vernis)
+        $sql .= "(SELECT COUNT(*) FROM ".MAIN_DB_PREFIX."commandedet cd3 ";
+        $sql .= " INNER JOIN ".MAIN_DB_PREFIX."product p3 ON cd3.fk_product = p3.rowid ";
+        $sql .= " WHERE cd3.fk_commande = c.rowid ";
+        $sql .= " AND p3.finished = 1 ";
+        $sql .= " AND cd3.fk_product != 299 ";
+        $sql .= ") as nb_manufactured ";
 
         $sql .= "FROM ".MAIN_DB_PREFIX."planningproduction_planning pp ";
         $sql .= "INNER JOIN ".MAIN_DB_PREFIX."commande c ON pp.fk_commande = c.rowid ";
@@ -452,8 +554,8 @@ class PlanningProduction extends CommonObject
                     'ref_chantier' => $obj->titre_ref_chantier ?: '-',
                     'delivery' => $delivery_address,
                     'deadline' => $obj->delai_liv ?: '-',
-                    'produit' => $obj->produit_label ?: $obj->produit_description,
-                    'produit_ref' => $obj->produit_ref,
+                    'produit' => ($obj->nb_manufactured > 0) ? ($obj->produit_label ?: $obj->produit_description) : 'A PRÉPARER',
+                    'produit_ref' => ($obj->nb_manufactured > 0) ? $obj->produit_ref : null,
                     'quantity' => $obj->qty,
                     'unite' => $obj->unite ?: 'u',
                     'matiere' => $obj->matiere ?: '-',
