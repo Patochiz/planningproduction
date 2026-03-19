@@ -496,7 +496,21 @@ if ($data === false && $type !== 'global') {
         .col-statuts { width: 8%; }
         .col-actions { display: none !important; }
         .no-print { display: none !important; }
+        .export-actions { display: none !important; }
         .edit-modal { display: none !important; }
+        .matiere-modal { display: none !important; }
+
+        /* Matières table print styles */
+        .matieres-table { font-size: 8pt; width: 100%; border-collapse: collapse; }
+        .matieres-table th, .matieres-table td { padding: 4px 6px; border: 1px solid #ccc; }
+        .matieres-table th { background: #ecf0f1 !important; color: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .matieres-table th[style*="f39c12"] { background: #f39c12 !important; color: white !important; }
+        .matieres-table .stock-editable,
+        .matieres-table .cde-editable { border: none; background: transparent; font-size: 8pt; padding: 0; width: auto; }
+        .matieres-table .btn-update-cde { display: none; }
+        .row-stock-alert { background-color: #ffebee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .row-desync { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        #matieresInlineSection .loading-spinner { display: none; }
     }
     
     /* Boutons d'action (cachés à l'impression) */
@@ -723,20 +737,11 @@ if ($data === false && $type !== 'global') {
     .matiere-message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     .matiere-message.info { background-color: #cce7ff; color: #004085; border: 1px solid #b6d7ff; }
 
-    @media print {
-        .export-actions {
-            display: none !important;
-        }
-        .matiere-modal {
-            display: none !important;
-        }
-    }
     </style>
 </head>
 <body>
     <!-- Actions (non imprimées) -->
     <div class="export-actions">
-        <button class="btn btn-matieres" onclick="openMatieresModal()">🧱 Matières</button>
         <button class="btn btn-print" onclick="window.print()">🖨️ Imprimer</button>
         <a href="planning.php" class="btn btn-back">✏️ Modifier</a>
     </div>
@@ -751,6 +756,19 @@ if ($data === false && $type !== 'global') {
         </div>
     </div>
     
+    <!-- Section Matières Premières (inline) -->
+    <div class="export-section" id="matieresInlineSection">
+        <h2 class="section-title">
+            🧱 Matières Premières
+        </h2>
+        <div id="matieresInlineContainer">
+            <div class="loading-spinner" style="text-align: center; padding: 30px;">
+                <div style="display: inline-block; width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <p>Chargement des matières...</p>
+            </div>
+        </div>
+    </div>
+
     <?php if ($type === 'global'): ?>
         <!-- EXPORT GLOBAL - NOUVEAU ORDRE AVEC PLANIFIÉES EN PREMIER -->
         
