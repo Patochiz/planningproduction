@@ -649,9 +649,7 @@ if ($data === false && $type !== 'global') {
     .matieres-table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 14px;
-        background: white;
-        border-radius: 8px;
+        font-size: 11px;
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
@@ -660,13 +658,13 @@ if ($data === false && $type !== 'global') {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         font-weight: 600;
-        padding: 15px 12px;
+        padding: 6px 8px;
         text-align: left;
         border: none;
     }
 
     .matieres-table td {
-        padding: 12px;
+        padding: 4px 8px;
         border-bottom: 1px solid #f0f0f0;
         vertical-align: middle;
     }
@@ -677,9 +675,9 @@ if ($data === false && $type !== 'global') {
     .stock-editable {
         background: none;
         border: 1px solid #ddd;
-        padding: 8px 10px;
+        padding: 3px 6px;
         border-radius: 4px;
-        font-size: 14px;
+        font-size: 11px;
         width: 80px;
         text-align: right;
         transition: all 0.2s ease;
@@ -695,9 +693,9 @@ if ($data === false && $type !== 'global') {
     .cde-editable {
         background: #fff8e1;
         border: 1px solid #f39c12;
-        padding: 8px 10px;
+        padding: 3px 6px;
         border-radius: 4px;
-        font-size: 14px;
+        font-size: 11px;
         width: 80px;
         text-align: right;
         transition: all 0.2s ease;
@@ -714,10 +712,10 @@ if ($data === false && $type !== 'global') {
         background: #28a745;
         color: white;
         border: none;
-        padding: 6px 12px;
+        padding: 3px 8px;
         border-radius: 4px;
         cursor: pointer;
-        font-size: 12px;
+        font-size: 10px;
         font-weight: 500;
         transition: all 0.2s ease;
     }
@@ -732,7 +730,7 @@ if ($data === false && $type !== 'global') {
     .row-desync { background-color: #fff3e0 !important; }
     .row-desync td { background-color: inherit !important; }
 
-    .matiere-message { padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; }
+    .matiere-message { padding: 8px; border-radius: 6px; margin-bottom: 10px; font-size: 11px; }
     .matiere-message.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .matiere-message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     .matiere-message.info { background-color: #cce7ff; color: #004085; border: 1px solid #b6d7ff; }
