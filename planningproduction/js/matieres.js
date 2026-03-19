@@ -74,10 +74,10 @@ function handleMatieresModalEscape(e) {
  */
 function loadMatieresData() {
     console.log('Chargement des données matières premières...');
-    
-    const container = document.getElementById('matieresTableContainer');
+
+    const container = document.getElementById('matieresTableContainer') || document.getElementById('matieresInlineContainer');
     if (!container) return;
-    
+
     // Afficher le spinner de chargement
     container.innerHTML = `
         <div class="loading-spinner" style="text-align: center; padding: 50px;">
@@ -129,17 +129,23 @@ function loadMatieresData() {
  */
 function renderMatieresTable() {
     console.log('Rendu du tableau avec', matieresData.length, 'matières');
-    
-    const container = document.getElementById('matieresTableContainer');
-    if (!container) return;
+
+    // Rendre dans tous les conteneurs disponibles (modal et/ou inline)
+    const containers = [
+        document.getElementById('matieresTableContainer'),
+        document.getElementById('matieresInlineContainer')
+    ].filter(Boolean);
+    if (containers.length === 0) return;
+    const container = containers[0];
     
     if (matieresData.length === 0) {
-        container.innerHTML = `
+        const emptyHtml = `
             <div class="matiere-message info">
                 <strong>Aucune matière première configurée</strong><br>
                 <small>Configurez vos matières premières dans les paramètres du module pour voir les stocks et quantités en cours.</small>
             </div>
         `;
+        containers.forEach(c => c.innerHTML = emptyHtml);
         return;
     }
     
@@ -232,7 +238,7 @@ function renderMatieresTable() {
         </div>
     `;
     
-    container.innerHTML = html;
+    containers.forEach(c => c.innerHTML = html);
 }
 
 /**
@@ -527,26 +533,33 @@ function showMatieresError(message) {
  * Afficher un message dans le modal
  */
 function showMatieresMessage(message, type = 'info') {
-    const container = document.getElementById('matieresTableContainer');
-    if (!container) return;
-    
-    // Retirer les anciens messages
-    const oldMessages = container.querySelectorAll('.matiere-message');
-    oldMessages.forEach(msg => msg.remove());
-    
-    // Créer le nouveau message
-    const messageEl = document.createElement('div');
-    messageEl.className = `matiere-message ${type}`;
-    messageEl.textContent = message;
-    
-    // Insérer au début du container
-    container.insertBefore(messageEl, container.firstChild);
-    
+    const containers = [
+        document.getElementById('matieresTableContainer'),
+        document.getElementById('matieresInlineContainer')
+    ].filter(Boolean);
+    if (containers.length === 0) return;
+
+    const messageElements = [];
+    containers.forEach(container => {
+        // Retirer les anciens messages
+        const oldMessages = container.querySelectorAll('.matiere-message');
+        oldMessages.forEach(msg => msg.remove());
+
+        // Créer le nouveau message
+        const messageEl = document.createElement('div');
+        messageEl.className = `matiere-message ${type}`;
+        messageEl.textContent = message;
+
+        // Insérer au début du container
+        container.insertBefore(messageEl, container.firstChild);
+        messageElements.push(messageEl);
+    });
+
     // Faire disparaître après 5 secondes
     setTimeout(() => {
-        if (messageEl.parentNode) {
-            messageEl.parentNode.removeChild(messageEl);
-        }
+        messageElements.forEach(el => {
+            if (el.parentNode) el.parentNode.removeChild(el);
+        });
     }, 5000);
 }
 
@@ -596,6 +609,14 @@ function formatDate(dateString) {
 document.addEventListener('click', function(e) {
     if (isMatieresModalOpen && e.target.id === 'matieresModal') {
         closeMatieresModal();
+    }
+});
+
+// Auto-chargement si le conteneur inline existe (page export_planning.php)
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('matieresInlineContainer')) {
+        console.log('Conteneur inline matières détecté, chargement automatique...');
+        loadMatieresData();
     }
 });
 
