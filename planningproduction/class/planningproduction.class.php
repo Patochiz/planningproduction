@@ -756,8 +756,8 @@ class PlanningProduction extends CommonObject
         $sql .= "AND p.finished = 1 "; // Produits manufacturés uniquement
         $sql .= "AND c.entity IN (".getEntity('commande').") ";
         
-        // Exclure les statuts À TERMINER et BON POUR EXPÉDITION
-        $sql .= "AND (cd_ef.statut_prod IS NULL OR cd_ef.statut_prod = '' OR cd_ef.statut_prod NOT IN ('À TERMINER', 'BON POUR EXPÉDITION')) ";
+        // Inclure uniquement les statuts À PRODUIRE et NON PLANIFIÉES (NULL ou vide)
+        $sql .= "AND (cd_ef.statut_prod IS NULL OR cd_ef.statut_prod = '' OR cd_ef.statut_prod = 'À PRODUIRE') ";
         
         // Rechercher le code MP dans le champ matiere
         $sql .= "AND cd_ef.matiere LIKE '%".$this->db->escape($code_mp)."%' ";
