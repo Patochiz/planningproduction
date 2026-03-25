@@ -86,10 +86,10 @@ switch ($type) {
         $unplanned = $object->getCardsByStatus('unplanned');
         $to_finish = $object->getCardsByStatus('a_terminer');
         $to_ship = $object->getCardsByStatus('a_expedier');
-        $planned_cards = $object->getPlannedCards($start_week, $week_count, $year);
-        
+        $planned_cards = $object->getPlannedCards(1, 52, $year);
+
         $title = $langs->trans('ExportGlobal');
-        $subtitle = "Export global du planning de production";
+        $subtitle = "Export global du planning de production - Année $year";
         break;
         
     default:
