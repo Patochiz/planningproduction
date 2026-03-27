@@ -511,6 +511,7 @@ if ($data === false && $type !== 'global') {
         .row-stock-alert { background-color: #ffebee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .row-desync { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         #matieresInlineSection .loading-spinner { display: none; }
+        #matieresInlineSection { display: none !important; }
     }
     
     /* Boutons d'action (cachés à l'impression) */
