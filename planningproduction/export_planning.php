@@ -510,6 +510,8 @@ if ($data === false && $type !== 'global') {
         .matieres-table .btn-update-cde { display: none; }
         .row-stock-alert { background-color: #ffebee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .row-desync { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .export-table tr.paint-required { background: #ffff00 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .export-table tr.paint-required td { background: inherit !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         #matieresInlineSection .loading-spinner { display: none; }
         #matieresInlineSection { display: none !important; }
     }
