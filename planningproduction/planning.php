@@ -143,6 +143,12 @@ if ($cards_to_finish === false) {
     setEventMessages($object->errors, null, 'errors');
     $cards_to_finish = array();
 }
+$cards_to_paint = $object->getCardsToPaint();
+if ($cards_to_paint === false) {
+    setEventMessages($object->errors, null, 'errors');
+    $cards_to_paint = array();
+}
+$cards_to_finish = array_merge($cards_to_finish, $cards_to_paint);
 
 $cards_to_ship = $object->getCardsToShip();
 if ($cards_to_ship === false) {
