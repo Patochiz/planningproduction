@@ -800,17 +800,6 @@ if ($data === false && $type !== 'global') {
         </div>
         <?php endif; ?>
 
-        <!-- À terminer -->
-        <?php if (!empty($to_finish)): ?>
-        <div class="export-section page-break">
-            <h2 class="section-title">
-                ⚠️ À Terminer
-                <span class="section-count"><?php echo count($to_finish); ?> éléments</span>
-            </h2>
-            <?php renderCardsTable($to_finish, $langs); ?>
-        </div>
-        <?php endif; ?>
-
         <!-- À peindre -->
         <?php if (!empty($to_paint)): ?>
         <div class="export-section page-break">
@@ -819,6 +808,17 @@ if ($data === false && $type !== 'global') {
                 <span class="section-count"><?php echo count($to_paint); ?> éléments</span>
             </h2>
             <?php renderCardsTable($to_paint, $langs); ?>
+        </div>
+        <?php endif; ?>
+
+        <!-- À terminer -->
+        <?php if (!empty($to_finish)): ?>
+        <div class="export-section page-break">
+            <h2 class="section-title">
+                ⚠️ À Terminer
+                <span class="section-count"><?php echo count($to_finish); ?> éléments</span>
+            </h2>
+            <?php renderCardsTable($to_finish, $langs); ?>
         </div>
         <?php endif; ?>
 
