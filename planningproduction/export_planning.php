@@ -914,6 +914,7 @@ if ($data === false && $type !== 'global') {
                     <select id="editProductionStatus" class="edit-form-select">
                         <option value="À PRODUIRE">À PRODUIRE</option>
                         <option value="EN COURS">EN COURS</option>
+                        <option value="À PEINDRE">À PEINDRE</option>
                         <option value="À TERMINER">À TERMINER</option>
                         <option value="BON POUR EXPÉDITION">BON POUR EXPÉDITION</option>
                     </select>
