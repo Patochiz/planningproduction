@@ -67,7 +67,13 @@ switch ($type) {
         $title = $langs->trans('ExportATerminer');
         $subtitle = 'Éléments à terminer';
         break;
-        
+
+    case 'to_paint':
+        $data = $object->getCardsByStatus('a_peindre');
+        $title = 'À Peindre';
+        $subtitle = 'Éléments à peindre';
+        break;
+
     case 'to_ship':
         $data = $object->getCardsByStatus('a_expedier');
         $title = $langs->trans('ExportAExpedier');
@@ -85,6 +91,7 @@ switch ($type) {
         // Export global avec toutes les catégories
         $unplanned = $object->getCardsByStatus('unplanned');
         $to_finish = $object->getCardsByStatus('a_terminer');
+        $to_paint = $object->getCardsByStatus('a_peindre');
         $to_ship = $object->getCardsByStatus('a_expedier');
         $planned_cards = $object->getPlannedCards(1, 52, $year);
 
@@ -793,6 +800,17 @@ if ($data === false && $type !== 'global') {
         </div>
         <?php endif; ?>
 
+        <!-- À peindre -->
+        <?php if (!empty($to_paint)): ?>
+        <div class="export-section page-break">
+            <h2 class="section-title">
+                🎨 À Peindre
+                <span class="section-count"><?php echo count($to_paint); ?> éléments</span>
+            </h2>
+            <?php renderCardsTable($to_paint, $langs); ?>
+        </div>
+        <?php endif; ?>
+
         <!-- À terminer -->
         <?php if (!empty($to_finish)): ?>
         <div class="export-section page-break">
@@ -814,15 +832,16 @@ if ($data === false && $type !== 'global') {
             <?php renderCardsTable($to_ship, $langs); ?>
         </div>
         <?php endif; ?>
-        
+
         <!-- Statistiques globales -->
         <div class="export-stats">
-            <strong>Résumé :</strong> 
-            <?php echo getTotalPlannedCards($planned_cards); ?> planifiées • 
-            <?php echo count($unplanned); ?> non planifiées • 
-            <?php echo count($to_finish); ?> à terminer • 
+            <strong>Résumé :</strong>
+            <?php echo getTotalPlannedCards($planned_cards); ?> planifiées •
+            <?php echo count($unplanned); ?> non planifiées •
+            <?php echo count($to_finish); ?> à terminer •
+            <?php echo count($to_paint); ?> à peindre •
             <?php echo count($to_ship); ?> à expédier •
-            <strong>Total : <?php echo (count($unplanned) + count($to_finish) + count($to_ship) + getTotalPlannedCards($planned_cards)); ?> éléments</strong>
+            <strong>Total : <?php echo (count($unplanned) + count($to_finish) + count($to_paint) + count($to_ship) + getTotalPlannedCards($planned_cards)); ?> éléments</strong>
         </div>
         
     <?php elseif ($type === 'planned'): ?>
@@ -895,6 +914,7 @@ if ($data === false && $type !== 'global') {
                     <select id="editProductionStatus" class="edit-form-select">
                         <option value="À PRODUIRE">À PRODUIRE</option>
                         <option value="EN COURS">EN COURS</option>
+                        <option value="À PEINDRE">À PEINDRE</option>
                         <option value="À TERMINER">À TERMINER</option>
                         <option value="BON POUR EXPÉDITION">BON POUR EXPÉDITION</option>
                     </select>

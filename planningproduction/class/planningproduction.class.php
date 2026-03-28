@@ -221,7 +221,12 @@ class PlanningProduction extends CommonObject
                 // À terminer
                 $sql .= " AND cd_ef.statut_prod = 'À TERMINER'";
                 break;
-                
+
+            case 'a_peindre':
+                // À peindre
+                $sql .= " AND cd_ef.statut_prod = 'À PEINDRE'";
+                break;
+
             case 'a_expedier':
                 // À expédier 
                 $sql .= " AND cd_ef.statut_prod = 'BON POUR EXPÉDITION'";
@@ -295,6 +300,16 @@ class PlanningProduction extends CommonObject
     public function getCardsToFinish()
     {
         return $this->getCardsByStatus('a_terminer');
+    }
+
+    /**
+     * Récupérer les cartes à peindre
+     *
+     * @return array Tableau des cartes à peindre
+     */
+    public function getCardsToPaint()
+    {
+        return $this->getCardsByStatus('a_peindre');
     }
 
     /**

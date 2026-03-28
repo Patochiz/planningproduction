@@ -134,7 +134,7 @@ try {
             // Validation des statuts si fournis
             $valid_statuts_mp = array('MP Ok,MP Ok', 'MP en attente,MP en attente', 'MP Manquante,MP Manquante', 
                 'BL A FAIRE,BL A FAIRE', 'PROFORMA A VALIDER,PROFORMA A VALIDER', 'MàJ AIRTABLE à Faire,MàJ AIRTABLE à Faire');
-            $valid_statuts_prod = array('À PRODUIRE', 'EN COURS', 'À TERMINER', 'BON POUR EXPÉDITION');
+            $valid_statuts_prod = array('À PRODUIRE', 'EN COURS', 'À PEINDRE', 'À TERMINER', 'BON POUR EXPÉDITION');
             $valid_postlaquage = array('oui', 'non');
             
             if ($statut_mp !== '' && !in_array($statut_mp, $valid_statuts_mp)) {

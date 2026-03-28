@@ -143,6 +143,12 @@ if ($cards_to_finish === false) {
     setEventMessages($object->errors, null, 'errors');
     $cards_to_finish = array();
 }
+$cards_to_paint = $object->getCardsToPaint();
+if ($cards_to_paint === false) {
+    setEventMessages($object->errors, null, 'errors');
+    $cards_to_paint = array();
+}
+$cards_to_finish = array_merge($cards_to_finish, $cards_to_paint);
 
 $cards_to_ship = $object->getCardsToShip();
 if ($cards_to_ship === false) {
@@ -377,6 +383,7 @@ if ($planned_cards === false) {
                 <select id="editProductionStatus" class="edit-form-select">
                     <option value="À PRODUIRE"><?php echo $langs->trans('AProdure'); ?></option>
                     <option value="EN COURS"><?php echo $langs->trans('EnCours'); ?></option>
+                    <option value="À PEINDRE"><?php echo $langs->trans('APeindre'); ?></option>
                     <option value="À TERMINER"><?php echo $langs->trans('ATerminer'); ?></option>
                     <option value="BON POUR EXPÉDITION"><?php echo $langs->trans('BonPourExpedition'); ?></option>
                 </select>
