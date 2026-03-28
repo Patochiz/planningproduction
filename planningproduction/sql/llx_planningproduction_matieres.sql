@@ -18,6 +18,7 @@ CREATE TABLE llx_planningproduction_matieres (
     code_mp varchar(255) NOT NULL,
     stock decimal(24,8) DEFAULT 0,
     cde_en_cours_date decimal(24,8) DEFAULT 0,
+    lien varchar(500) DEFAULT NULL,
     ordre integer DEFAULT 0,
     date_creation datetime NOT NULL,
     tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

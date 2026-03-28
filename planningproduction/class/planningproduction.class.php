@@ -700,7 +700,7 @@ class PlanningProduction extends CommonObject
     {
         $matieres = array();
         
-        $sql = "SELECT rowid, code_mp, stock, cde_en_cours_date, tms, ordre ";
+        $sql = "SELECT rowid, code_mp, stock, cde_en_cours_date, tms, ordre, lien ";
         $sql .= "FROM ".MAIN_DB_PREFIX."planningproduction_matieres ";
         $sql .= "WHERE entity IN (".getEntity('planningproduction').') ';
         if ($order_by_position) {
@@ -729,6 +729,7 @@ class PlanningProduction extends CommonObject
                     'stock' => (float)$obj->stock,
                     'cde_en_cours_date' => $cde_en_cours_date,
                     'ordre' => (int)$obj->ordre,
+                    'lien' => $obj->lien,
                     'cde_en_cours' => 0, // Sera calculé séparément
                     'reste' => (float)$obj->stock - $cde_en_cours_date, // Calculé avec cde_en_cours_date
                     'date_maj' => $obj->tms
@@ -801,29 +802,30 @@ class PlanningProduction extends CommonObject
      * @param float $stock Stock initial
      * @return int ID de l'enregistrement créé ou -1 si erreur
      */
-    public function createMatiere($code_mp, $stock = 0)
+    public function createMatiere($code_mp, $stock = 0, $lien = '')
     {
         global $user, $conf;
-        
+
         // Vérifier que le code n'existe pas déjà
         $sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."planningproduction_matieres ";
         $sql .= "WHERE code_mp = '".$this->db->escape($code_mp)."' ";
         $sql .= "AND entity IN (".getEntity('planningproduction').")";
-        
+
         $resql = $this->db->query($sql);
         if ($resql && $this->db->num_rows($resql)) {
             $this->errors[] = "Le code MP existe déjà";
             return -1;
         }
-        
+
         // Récupérer le prochain ordre
         $next_ordre = $this->getNextMatiereOrdre();
-        
+
         $sql = "INSERT INTO ".MAIN_DB_PREFIX."planningproduction_matieres (";
-        $sql .= "code_mp, stock, ordre, date_creation, fk_user_creat, entity";
+        $sql .= "code_mp, stock, lien, ordre, date_creation, fk_user_creat, entity";
         $sql .= ") VALUES (";
         $sql .= "'".$this->db->escape($code_mp)."', ";
         $sql .= ((float) $stock).", ";
+        $sql .= (!empty($lien) ? "'".$this->db->escape($lien)."'" : "NULL").", ";
         $sql .= ((int) $next_ordre).", ";
         $sql .= "'".$this->db->idate(dol_now())."', ";
         $sql .= ((int) $user->id).", ";
@@ -925,25 +927,26 @@ class PlanningProduction extends CommonObject
      * @param float $stock Stock
      * @return int 1 si OK, -1 si erreur
      */
-    public function updateMatiere($rowid, $code_mp, $stock)
+    public function updateMatiere($rowid, $code_mp, $stock, $lien = '')
     {
         global $user;
-        
+
         // Vérifier que le code n'existe pas déjà pour un autre enregistrement
         $sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."planningproduction_matieres ";
         $sql .= "WHERE code_mp = '".$this->db->escape($code_mp)."' ";
         $sql .= "AND rowid != ".((int) $rowid)." ";
         $sql .= "AND entity IN (".getEntity('planningproduction').")";
-        
+
         $resql = $this->db->query($sql);
         if ($resql && $this->db->num_rows($resql)) {
             $this->errors[] = "Le code MP existe déjà";
             return -1;
         }
-        
+
         $sql = "UPDATE ".MAIN_DB_PREFIX."planningproduction_matieres SET ";
         $sql .= "code_mp = '".$this->db->escape($code_mp)."', ";
         $sql .= "stock = ".((float) $stock).", ";
+        $sql .= "lien = ".(!empty($lien) ? "'".$this->db->escape($lien)."'" : "NULL").", ";
         $sql .= "fk_user_modif = ".((int) $user->id)." ";
         $sql .= "WHERE rowid = ".((int) $rowid);
         
