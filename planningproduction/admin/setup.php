@@ -173,12 +173,13 @@ if (!$resql_check || $db->num_rows($resql_check) == 0) {
 if ($action == 'add_matiere' && $user->hasRight('planningproduction', 'planning', 'write')) {
     $new_code_mp = GETPOST('new_code_mp', 'alphanohtml');
     $new_stock = GETPOST('new_stock', 'alphanohtml');
-    
+    $new_lien = GETPOST('new_lien', 'alphanohtml');
+
     // Debug des valeurs reçues
     dol_syslog("add_matiere - new_code_mp: '".$new_code_mp."', new_stock: '".$new_stock."'", LOG_DEBUG);
-    
+
     if (!empty($new_code_mp) && $new_stock !== '' && is_numeric($new_stock)) {
-        $result = $planning->createMatiere($new_code_mp, (float)$new_stock);
+        $result = $planning->createMatiere($new_code_mp, (float)$new_stock, $new_lien);
         if ($result > 0) {
             setEventMessages("Matière première ajoutée avec succès", null, 'mesgs');
             header("Location: ".$_SERVER['PHP_SELF']);
@@ -211,12 +212,13 @@ if ($action == 'update_matiere' && $user->hasRight('planningproduction', 'planni
     $rowid = GETPOST('rowid', 'int');
     $code_mp = GETPOST('code_mp', 'alphanohtml');
     $stock = GETPOST('stock', 'alphanohtml');
-    
+    $lien = GETPOST('lien', 'alphanohtml');
+
     // Debug des valeurs reçues
     dol_syslog("update_matiere - rowid: '".$rowid."', code_mp: '".$code_mp."', stock: '".$stock."'", LOG_DEBUG);
-    
+
     if ($rowid > 0 && !empty($code_mp) && $stock !== '' && is_numeric($stock)) {
-        $result = $planning->updateMatiere($rowid, $code_mp, (float)$stock);
+        $result = $planning->updateMatiere($rowid, $code_mp, (float)$stock, $lien);
         if ($result > 0) {
             setEventMessages("Matière première mise à jour avec succès", null, 'mesgs');
             header("Location: ".$_SERVER['PHP_SELF']);
@@ -239,18 +241,20 @@ if ($user->hasRight('planningproduction', 'planning', 'write')) {
     print '<input type="hidden" name="token" value="'.newToken().'">';
     print '<input type="hidden" name="action" value="add_matiere">';
     
-    print '<table class="noborder" style="width: 600px;">';
+    print '<table class="noborder" style="width: 800px;">';
     print '<tr class="liste_titre">';
-    print '<td colspan="3">Ajouter une nouvelle matière première</td>';
+    print '<td colspan="4">Ajouter une nouvelle matière première</td>';
     print '</tr>';
     print '<tr>';
     print '<td style="width: 200px;">Code MP :</td>';
     print '<td style="width: 150px;">Stock initial :</td>';
+    print '<td style="width: 250px;">Lien :</td>';
     print '<td style="width: 100px;">Action</td>';
     print '</tr>';
     print '<tr>';
     print '<td><input type="text" name="new_code_mp" placeholder="Ex: 400 BLANC" required style="width: 180px;"></td>';
     print '<td><input type="number" name="new_stock" step="0.01" value="0" style="width: 120px;"></td>';
+    print '<td><input type="url" name="new_lien" placeholder="https://..." style="width: 240px;"></td>';
     print '<td><input type="submit" value="Ajouter" class="button"></td>';
     print '</tr>';
     print '</table>';
@@ -275,6 +279,7 @@ print '<table class="noborder centpercent matieres-table" id="matieres-sortable"
 print '<tr class="liste_titre">';
 print '<td>Code MP</td>';
 print '<td>Stock</td>';
+print '<td>Lien</td>';
 print '<td>Dernière MàJ</td>';
 if ($user->hasRight('planningproduction', 'planning', 'write')) {
     print '<td width="150">Actions</td>';
@@ -282,7 +287,7 @@ if ($user->hasRight('planningproduction', 'planning', 'write')) {
 print '</tr>';
 
 if (count($matieres) == 0) {
-    print '<tr><td colspan="'.(($user->hasRight('planningproduction', 'planning', 'write')) ? '4' : '3').'" class="opacitymedium">Aucune matière première configurée</td></tr>';
+    print '<tr><td colspan="'.(($user->hasRight('planningproduction', 'planning', 'write')) ? '5' : '4').'" class="opacitymedium">Aucune matière première configurée</td></tr>';
 } else {
     foreach ($matieres as $matiere) {
         print '<tr class="oddeven" data-matiere-id="'.$matiere['rowid'].'" data-ordre="'.($matiere['ordre'] ?? 0).'">';
@@ -296,6 +301,7 @@ if (count($matieres) == 0) {
             
             print '<td><input type="text" name="code_mp" value="'.htmlspecialchars($matiere['code_mp']).'" required style="width: 100%;"></td>';
             print '<td><input type="number" name="stock" value="'.$matiere['stock'].'" step="0.01" style="width: 100px;"></td>';
+            print '<td><input type="url" name="lien" value="'.htmlspecialchars($matiere['lien'] ?? '').'" placeholder="https://..." style="width: 200px;"></td>';
             print '<td>'.dol_print_date($matiere['date_maj'], 'dayhour').'</td>';
             print '<td>';
             print '<input type="submit" value="Sauver" class="button" style="margin-right: 5px;">';
@@ -310,6 +316,11 @@ if (count($matieres) == 0) {
             }
             print '<td>'.$drag_handle.'<strong>'.htmlspecialchars($matiere['code_mp']).'</strong></td>';
             print '<td>'.number_format($matiere['stock'], 2).'</td>';
+            if (!empty($matiere['lien'])) {
+                print '<td><a href="'.htmlspecialchars($matiere['lien']).'" target="_blank" title="'.htmlspecialchars($matiere['lien']).'">'.dol_trunc(htmlspecialchars($matiere['lien']), 30).'</a></td>';
+            } else {
+                print '<td>-</td>';
+            }
             print '<td>'.dol_print_date($matiere['date_maj'], 'dayhour').'</td>';
             
             if ($user->hasRight('planningproduction', 'planning', 'write')) {

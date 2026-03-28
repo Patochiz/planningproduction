@@ -50,6 +50,17 @@ $start_week = GETPOST('start_week', 'int') ? GETPOST('start_week', 'int') : date
 // Initialize objects
 $object = new PlanningProduction($db);
 
+// Build mapping of code_mp -> lien for clickable materials
+$matieres_liens = array();
+$all_matieres = $object->getAllMatieres(false);
+if ($all_matieres !== false) {
+    foreach ($all_matieres as $m) {
+        if (!empty($m['lien'])) {
+            $matieres_liens[$m['code_mp']] = $m['lien'];
+        }
+    }
+}
+
 // Get data based on type
 $data = array();
 $title = '';
@@ -1125,8 +1136,10 @@ if ($data === false && $type !== 'global') {
 /**
  * Render table of cards with new column order
  */
-function renderCardsTable($cards, $langs) 
+function renderCardsTable($cards, $langs)
 {
+    global $matieres_liens;
+
     if (empty($cards)) {
         echo '<div class="empty-message">Aucun élément à afficher dans cette catégorie.</div>';
         return;
@@ -1189,8 +1202,22 @@ function renderCardsTable($cards, $langs)
         }
         echo '<td>' . $produit . '</td>';
 
-        // Matière
-        echo '<td>' . htmlspecialchars($card['matiere'] ?? '-') . '</td>';
+        // Matière (cliquable si un lien est configuré pour ce code MP)
+        $matiere_val = $card['matiere'] ?? '-';
+        $matiere_lien = '';
+        if (!empty($matiere_val) && $matiere_val !== '-' && !empty($matieres_liens)) {
+            foreach ($matieres_liens as $code_mp => $lien) {
+                if (stripos($matiere_val, $code_mp) !== false) {
+                    $matiere_lien = $lien;
+                    break;
+                }
+            }
+        }
+        if (!empty($matiere_lien)) {
+            echo '<td><a href="' . htmlspecialchars($matiere_lien) . '" target="_blank" style="color: inherit; text-decoration: underline;">' . htmlspecialchars($matiere_val) . '</a></td>';
+        } else {
+            echo '<td>' . htmlspecialchars($matiere_val) . '</td>';
+        }
 
         // Quantité
         echo '<td style="text-align:right">' . htmlspecialchars(number_format(floatval($card['quantity'] ?? 0), 2, ',', '') . ' ' . ($card['unite'] ?? 'u')) . '</td>';
@@ -1251,8 +1278,10 @@ function renderCardsTable($cards, $langs)
 /**
  * Render planned cards organized by week with groups
  */
-function renderPlannedCardsByWeek($planned_cards, $langs) 
+function renderPlannedCardsByWeek($planned_cards, $langs)
 {
+    global $matieres_liens;
+
     if (empty($planned_cards)) {
         echo '<div class="empty-message">Aucun élément planifié à afficher.</div>';
         return;
@@ -1351,8 +1380,22 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 }
                 echo '<td>' . $produit . '</td>';
 
-                // Matière
-                echo '<td>' . htmlspecialchars($card['matiere'] ?? '-') . '</td>';
+                // Matière (cliquable si un lien est configuré pour ce code MP)
+                $matiere_val = $card['matiere'] ?? '-';
+                $matiere_lien = '';
+                if (!empty($matiere_val) && $matiere_val !== '-' && !empty($matieres_liens)) {
+                    foreach ($matieres_liens as $code_mp => $lien) {
+                        if (stripos($matiere_val, $code_mp) !== false) {
+                            $matiere_lien = $lien;
+                            break;
+                        }
+                    }
+                }
+                if (!empty($matiere_lien)) {
+                    echo '<td><a href="' . htmlspecialchars($matiere_lien) . '" target="_blank" style="color: inherit; text-decoration: underline;">' . htmlspecialchars($matiere_val) . '</a></td>';
+                } else {
+                    echo '<td>' . htmlspecialchars($matiere_val) . '</td>';
+                }
 
                 // Quantité
                 echo '<td style="text-align:right">' . htmlspecialchars(number_format(floatval($card['quantity'] ?? 0), 2, ',', '') . ' ' . ($card['unite'] ?? 'u')) . '</td>';

@@ -184,9 +184,13 @@ function renderMatieresTable() {
         const resteStyle = isStockAlert ? 'color: #c62828; font-weight: bold;' : '';
         const cdeStyle = isDesync ? 'color: #c62828; font-weight: bold;' : '';
 
+        const codeMpHtml = matiere.lien
+            ? `<a href="${escapeHtml(matiere.lien)}" target="_blank" style="color: inherit; text-decoration: underline;"><strong>${escapeHtml(matiere.code_mp)}</strong></a>`
+            : `<strong>${escapeHtml(matiere.code_mp)}</strong>`;
+
         html += `
             <tr class="${rowClasses.join(' ')}" data-rowid="${matiere.rowid}" style="${rowStyle}">
-                <td><strong>${escapeHtml(matiere.code_mp)}</strong></td>
+                <td>${codeMpHtml}</td>
                 <td class="numeric-cell">
                     <input type="number"
                            class="stock-editable"
