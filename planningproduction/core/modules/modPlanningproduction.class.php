@@ -200,6 +200,7 @@ class modPlanningproduction extends DolibarrModules
             'fk_menu'=>'', // '' if this is a top menu. For left menu, use 'fk_mainmenu=xxx' or 'fk_mainmenu=xxx,fk_leftmenu=yyy' where xxx is mainmenucode and yyy is a leftmenucode
             'type'=>'top', // This is a Top menu entry
             'titre'=>'Planning Production',
+            'prefix' => img_picto('', 'fa-calendar', 'class="fa fa-calendar paddingright pictofixedwidth valignmiddle"'),
             'mainmenu'=>'planningproduction',
             'leftmenu'=>'',
             'url'=>'/custom/planningproduction/export_planning.php?type=global',
