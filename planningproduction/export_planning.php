@@ -320,6 +320,31 @@ if ($data === false && $type !== 'global') {
     }
     .btn-popup-row:hover { background: #2980b9; }
 
+    .row-checkbox {
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+        margin-right: 4px;
+    }
+
+    .selection-notification {
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        background: #3498db;
+        color: white;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        z-index: 999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .selection-notification strong {
+        margin-right: 6px;
+    }
+
     /* === MODAL D'ÉDITION (identique à planning.php) === */
     .edit-modal {
         position: fixed;
@@ -765,6 +790,12 @@ if ($data === false && $type !== 'global') {
         <a href="planning.php" class="btn btn-back">✏️ Modifier</a>
     </div>
     
+    <!-- Notification de sélection (cachée par défaut) -->
+    <div class="selection-notification no-print" id="selectionNotification" style="display:none;">
+        <strong>Sélection :</strong>
+        <span id="selectionSummary"></span>
+    </div>
+
     <!-- Header -->
     <div class="export-header">
         <div class="export-title"><?php echo htmlspecialchars($title); ?></div>
@@ -1126,6 +1157,36 @@ if ($data === false && $type !== 'global') {
         var modal = document.getElementById('editModal');
         if (e.key === 'Escape' && modal && modal.classList.contains('show')) closeEditModal();
     });
+
+    // === SOMME DES QUANTITÉS DES LIGNES COCHÉES ===
+    function updateSelectionNotification() {
+        var checked = document.querySelectorAll('.row-checkbox:checked');
+        var notif = document.getElementById('selectionNotification');
+        var summary = document.getElementById('selectionSummary');
+
+        if (checked.length === 0) {
+            notif.style.display = 'none';
+            return;
+        }
+
+        var totals = {};
+        checked.forEach(function(cb) {
+            var qty = parseFloat(cb.dataset.qty) || 0;
+            var unite = cb.dataset.unite || 'u';
+            if (!totals[unite]) totals[unite] = 0;
+            totals[unite] += qty;
+        });
+
+        var parts = [];
+        for (var unite in totals) {
+            var val = totals[unite];
+            var display = (val === Math.floor(val)) ? val.toString() : val.toFixed(2).replace('.', ',');
+            parts.push(display + ' ' + unite);
+        }
+
+        summary.textContent = checked.length + ' ligne' + (checked.length > 1 ? 's' : '') + ' — ' + parts.join(' | ');
+        notif.style.display = 'block';
+    }
     </script>
 
 </body>
@@ -1266,7 +1327,7 @@ function renderCardsTable($cards, $langs)
         $btn_data .= ' data-statut-mp="' . htmlspecialchars($card['statut_mp'] ?? '', ENT_QUOTES) . '"';
         $btn_data .= ' data-statut-prod="' . htmlspecialchars($card['statut_prod'] ?? '', ENT_QUOTES) . '"';
         $btn_data .= ' data-postlaquage="' . htmlspecialchars($card['postlaquage'] ?? 'non', ENT_QUOTES) . '"';
-        echo '<td class="no-print"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button></td>';
+        echo '<td class="no-print"><input type="checkbox" class="row-checkbox" data-qty="' . floatval($card['quantity'] ?? 0) . '" data-unite="' . htmlspecialchars($card['unite'] ?? 'u', ENT_QUOTES) . '" onchange="updateSelectionNotification()"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button></td>';
 
         echo '</tr>';
     }
@@ -1444,7 +1505,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 $btn_data .= ' data-statut-mp="' . htmlspecialchars($card['statut_mp'] ?? '', ENT_QUOTES) . '"';
                 $btn_data .= ' data-statut-prod="' . htmlspecialchars($card['statut_prod'] ?? '', ENT_QUOTES) . '"';
                 $btn_data .= ' data-postlaquage="' . htmlspecialchars($card['postlaquage'] ?? 'non', ENT_QUOTES) . '"';
-                echo '<td class="no-print"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button></td>';
+                echo '<td class="no-print"><input type="checkbox" class="row-checkbox" data-qty="' . floatval($card['quantity'] ?? 0) . '" data-unite="' . htmlspecialchars($card['unite'] ?? 'u', ENT_QUOTES) . '" onchange="updateSelectionNotification()"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button></td>';
 
                 echo '</tr>';
             }
