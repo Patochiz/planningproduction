@@ -438,7 +438,7 @@ class PlanningProduction extends CommonObject
 
         // MODIFICATION IMPORTANTE : Exclure les cartes avec statut "À TERMINER" ou "BON POUR EXPÉDITION"
         // Ces cartes ne doivent apparaître que dans les onglets, pas dans le planning des semaines
-        $sql .= "AND (cd_ef.statut_prod IS NULL OR cd_ef.statut_prod = '' OR cd_ef.statut_prod NOT IN ('À TERMINER', 'BON POUR EXPÉDITION')) ";
+        $sql .= "AND (cd_ef.statut_prod IS NULL OR cd_ef.statut_prod = '' OR cd_ef.statut_prod NOT IN ('À PEINDRE', 'À TERMINER', 'BON POUR EXPÉDITION')) ";
         
         $sql .= "AND c.entity IN (".getEntity('commande').")";
         

@@ -240,7 +240,10 @@ function saveCardEdit() {
     let willMoveToTabs = false;
     let newTabLocation = '';
     
-    if (prodStatus === 'À TERMINER') {
+    if (prodStatus === 'À PEINDRE') {
+        willMoveToTabs = true;
+        newTabLocation = 'onglet "À terminer"';
+    } else if (prodStatus === 'À TERMINER') {
         willMoveToTabs = true;
         newTabLocation = 'onglet "À terminer"';
     } else if (prodStatus === 'BON POUR EXPÉDITION') {
