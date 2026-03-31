@@ -208,6 +208,25 @@ if ($data === false && $type !== 'global') {
         background: #34495e;
         color: white;
         text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+    .week-qty-summary {
+        display: inline-flex;
+        gap: 6px;
+        margin-right: auto;
+    }
+    .week-qty-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 10pt;
+        font-weight: 600;
+    }
+    .week-title-text {
+        margin-right: auto;
     }
     
     .week-title:first-child {
@@ -1353,8 +1372,25 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
             continue;
         }
         
-        // Titre de semaine
-        echo '<div class="week-title">SEMAINE ' . sprintf('%02d', $week) . ' - ' . count($week_data['cards']) . ' éléments</div>';
+        // Calculer les sommes de quantités par unité pour la semaine
+        $week_qty_totals = array();
+        foreach ($week_data['cards'] as $card) {
+            $unite = $card['unite'] ?? 'u';
+            $qty = floatval($card['quantity'] ?? 0);
+            if (!isset($week_qty_totals[$unite])) $week_qty_totals[$unite] = 0;
+            $week_qty_totals[$unite] += $qty;
+        }
+        $qty_badges = '';
+        foreach ($week_qty_totals as $unite => $total) {
+            $display = ($total == intval($total)) ? intval($total) : number_format($total, 2, ',', '');
+            $qty_badges .= '<span class="week-qty-badge">' . $display . ' ' . htmlspecialchars($unite) . '</span>';
+        }
+
+        // Titre de semaine avec sommes à gauche
+        echo '<div class="week-title">';
+        echo '<span class="week-qty-summary">' . $qty_badges . '</span>';
+        echo '<span class="week-title-text">SEMAINE ' . sprintf('%02d', $week) . ' - ' . count($week_data['cards']) . ' éléments</span>';
+        echo '</div>';
         
         // Grouper les cartes par groupe
         $groups = array();
