@@ -185,8 +185,8 @@ class PlanningProduction extends CommonObject
         $sql .= " ORDER BY cd_titre.rang DESC ";
         $sql .= " LIMIT 1 ";
         $sql .= ") as titre_ref_chantier, ";
-        // Sous-requête pour détecter si la ligne suivante est le produit Vernis (ID=299)
-        $sql .= "(SELECT CASE WHEN cd_next.fk_product = 299 THEN 1 ELSE 0 END ";
+        // Sous-requête pour détecter si la ligne suivante est le produit Vernis (ID=299) ou VN_400 (ID=480)
+        $sql .= "(SELECT CASE WHEN cd_next.fk_product IN (299, 480) THEN 1 ELSE 0 END ";
         $sql .= " FROM ".MAIN_DB_PREFIX."commandedet cd_next ";
         $sql .= " WHERE cd_next.fk_commande = cd.fk_commande ";
         $sql .= " AND cd_next.rang > cd.rang ";
@@ -413,8 +413,8 @@ class PlanningProduction extends CommonObject
         $sql .= " ORDER BY cd_titre.rang DESC ";
         $sql .= " LIMIT 1 ";
         $sql .= ") as titre_ref_chantier, ";
-        // Sous-requête pour détecter si la ligne suivante est le produit Vernis (ID=299)
-        $sql .= "(SELECT CASE WHEN cd_next.fk_product = 299 THEN 1 ELSE 0 END ";
+        // Sous-requête pour détecter si la ligne suivante est le produit Vernis (ID=299) ou VN_400 (ID=480)
+        $sql .= "(SELECT CASE WHEN cd_next.fk_product IN (299, 480) THEN 1 ELSE 0 END ";
         $sql .= " FROM ".MAIN_DB_PREFIX."commandedet cd_next ";
         $sql .= " WHERE cd_next.fk_commande = cd.fk_commande ";
         $sql .= " AND cd_next.rang > cd.rang ";
