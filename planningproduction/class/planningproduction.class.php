@@ -279,6 +279,65 @@ class PlanningProduction extends CommonObject
             return false;
         }
         
+        // Pour les cartes non planifiées, ajouter les commandes sans aucun produit manufacturé
+        if ($statut_filter === 'unplanned') {
+            $sql_divers = "SELECT c.rowid as commande_id, c.ref as commande_ref, c.fk_soc, ";
+            $sql_divers .= "s.nom as societe_nom, c_ef.version, c_ef.delai_liv, c_ef.statut_ar ";
+            $sql_divers .= "FROM ".MAIN_DB_PREFIX."commande c ";
+            $sql_divers .= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON c.fk_soc = s.rowid ";
+            $sql_divers .= "LEFT JOIN ".MAIN_DB_PREFIX."commande_extrafields c_ef ON c.rowid = c_ef.fk_object ";
+            $sql_divers .= "WHERE c.fk_statut = 1 "; // Commandes validées
+            $sql_divers .= "AND c.facture = 0 "; // Non facturées
+            $sql_divers .= "AND c.entity IN (".getEntity('commande').") ";
+            $sql_divers .= "AND NOT EXISTS (";
+            $sql_divers .= "  SELECT 1 FROM ".MAIN_DB_PREFIX."commandedet cd ";
+            $sql_divers .= "  INNER JOIN ".MAIN_DB_PREFIX."product p ON cd.fk_product = p.rowid ";
+            $sql_divers .= "  WHERE cd.fk_commande = c.rowid ";
+            $sql_divers .= "  AND p.finished = 1 ";
+            $sql_divers .= "  AND cd.fk_product != 299 ";
+            $sql_divers .= ") ";
+            $sql_divers .= "ORDER BY c.date_creation DESC";
+
+            dol_syslog(get_class($this)."::getCardsByStatus - requête commandes Divers", LOG_DEBUG);
+            $resql_divers = $this->db->query($sql_divers);
+            if ($resql_divers) {
+                $num_divers = $this->db->num_rows($resql_divers);
+                $j = 0;
+                while ($j < $num_divers) {
+                    $obj = $this->db->fetch_object($resql_divers);
+                    $delivery_address = $this->getDeliveryAddress($obj->commande_id);
+
+                    $cards[] = array(
+                        'id' => 'card_unplanned_divers_' . $obj->commande_id,
+                        'fk_commande' => $obj->commande_id,
+                        'fk_commandedet' => 0,
+                        'commande_ref' => $obj->commande_ref,
+                        'version' => $obj->version ?: 'V1',
+                        'client' => $obj->societe_nom,
+                        'fk_soc' => $obj->fk_soc,
+                        'ref_chantier' => '-',
+                        'delivery' => $delivery_address,
+                        'deadline' => $obj->delai_liv ?: '-',
+                        'produit' => 'Divers',
+                        'produit_ref' => '',
+                        'quantity' => '-',
+                        'unite' => '',
+                        'matiere' => '-',
+                        'statut_mp' => '',
+                        'statut_ar' => $obj->statut_ar,
+                        'statut_prod' => 'À PRODUIRE',
+                        'postlaquage' => '',
+                        'has_vn' => false,
+                        'is_divers' => true
+                    );
+                    $j++;
+                }
+                $this->db->free($resql_divers);
+            } else {
+                dol_syslog(get_class($this)."::getCardsByStatus - erreur requête Divers: ".$this->db->lasterror(), LOG_ERR);
+            }
+        }
+
         return $cards;
     }
 

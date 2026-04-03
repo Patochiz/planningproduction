@@ -32,20 +32,22 @@
  */
 function generateCardHTML($card, $langs) 
 {
-    $paint_required = (isset($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' paint-required' : '';
-    
+    $is_divers = !empty($card['is_divers']);
+    $paint_required = (!$is_divers && isset($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' paint-required' : '';
+
     // Déterminer la couleur de bordure selon les statuts MP et AR
     $border_class = '';
     $mp_ok = (isset($card['statut_mp']) && strpos($card['statut_mp'], 'MP Ok') !== false);
     $ar_ok = (isset($card['statut_ar']) && $card['statut_ar'] == 'AR VALIDÉ');
-    
+
     if ($mp_ok && $ar_ok) {
         $border_class = ' border-green';
     } else {
         $border_class = ' border-red';
     }
-    
-    $html = '<div class="kanban-card' . $paint_required . $border_class . '" draggable="true" ';
+
+    $draggable = $is_divers ? 'false' : 'true';
+    $html = '<div class="kanban-card' . $paint_required . $border_class . '" draggable="' . $draggable . '" ';
     $html .= 'data-fk-commande="' . $card['fk_commande'] . '" ';
     $html .= 'data-fk-commandedet="' . $card['fk_commandedet'] . '" ';
     $html .= 'data-produit="' . htmlspecialchars($card['produit'] ?? '') . '" ';
@@ -106,10 +108,12 @@ function generateCardHTML($card, $langs)
     
     $html .= '</div>';
     
-    // Actions
+    // Actions (masquées pour les cartes Divers sans ligne de produit réelle)
     $html .= '<div class="card-actions">';
-    $html .= '<button class="card-btn card-btn-edit" title="' . $langs->trans('Editer') . '">✏️</button>';
-    $html .= '<button class="card-btn card-btn-delete" title="' . $langs->trans('Deplanifier') . '">🗑️</button>';
+    if (!$is_divers) {
+        $html .= '<button class="card-btn card-btn-edit" title="' . $langs->trans('Editer') . '">✏️</button>';
+        $html .= '<button class="card-btn card-btn-delete" title="' . $langs->trans('Deplanifier') . '">🗑️</button>';
+    }
     $html .= '</div>';
     $html .= '</div>';
     $html .= '</div>';
