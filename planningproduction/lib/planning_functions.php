@@ -33,18 +33,18 @@
 function generateCardHTML($card, $langs) 
 {
     $paint_required = (isset($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' paint-required' : '';
-    
+
     // Déterminer la couleur de bordure selon les statuts MP et AR
     $border_class = '';
     $mp_ok = (isset($card['statut_mp']) && strpos($card['statut_mp'], 'MP Ok') !== false);
     $ar_ok = (isset($card['statut_ar']) && $card['statut_ar'] == 'AR VALIDÉ');
-    
+
     if ($mp_ok && $ar_ok) {
         $border_class = ' border-green';
     } else {
         $border_class = ' border-red';
     }
-    
+
     $html = '<div class="kanban-card' . $paint_required . $border_class . '" draggable="true" ';
     $html .= 'data-fk-commande="' . $card['fk_commande'] . '" ';
     $html .= 'data-fk-commandedet="' . $card['fk_commandedet'] . '" ';

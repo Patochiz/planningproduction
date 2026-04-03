@@ -279,6 +279,114 @@ class PlanningProduction extends CommonObject
             return false;
         }
         
+        // Requête de repli : commandes sans aucun produit manufacturé → 1er produit non-service
+        // Ces cartes sont pleinement éditables (fk_commandedet réel)
+        $sql_fallback = "SELECT DISTINCT cd.rowid as commandedet_id, c.rowid as commande_id, c.ref as commande_ref, ";
+        $sql_fallback .= "c.fk_soc, s.nom as societe_nom, c.date_creation, ";
+        $sql_fallback .= "cd.description as produit_description, cd.qty, cd.product_type, ";
+        $sql_fallback .= "p.ref as produit_ref, p.label as produit_label, ";
+        $sql_fallback .= "u.short_label as unite, ";
+        $sql_fallback .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, ";
+        $sql_fallback .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
+        $sql_fallback .= "(SELECT cd_titre_ef.ref_chantier ";
+        $sql_fallback .= " FROM ".MAIN_DB_PREFIX."commandedet cd_titre ";
+        $sql_fallback .= " LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_titre_ef ON cd_titre.rowid = cd_titre_ef.fk_object ";
+        $sql_fallback .= " WHERE cd_titre.fk_commande = cd.fk_commande ";
+        $sql_fallback .= " AND cd_titre.fk_product = 361 ";
+        $sql_fallback .= " AND cd_titre.rang < cd.rang ";
+        $sql_fallback .= " ORDER BY cd_titre.rang DESC LIMIT 1 ";
+        $sql_fallback .= ") as titre_ref_chantier, ";
+        $sql_fallback .= "(SELECT CASE WHEN cd_next.fk_product IN (299, 480) THEN 1 ELSE 0 END ";
+        $sql_fallback .= " FROM ".MAIN_DB_PREFIX."commandedet cd_next ";
+        $sql_fallback .= " WHERE cd_next.fk_commande = cd.fk_commande ";
+        $sql_fallback .= " AND cd_next.rang > cd.rang ";
+        $sql_fallback .= " ORDER BY cd_next.rang ASC LIMIT 1 ";
+        $sql_fallback .= ") as has_vn ";
+
+        $sql_fallback .= "FROM ".MAIN_DB_PREFIX."commande c ";
+        $sql_fallback .= "INNER JOIN ".MAIN_DB_PREFIX."commandedet cd ON c.rowid = cd.fk_commande ";
+        $sql_fallback .= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON c.fk_soc = s.rowid ";
+        $sql_fallback .= "LEFT JOIN ".MAIN_DB_PREFIX."product p ON cd.fk_product = p.rowid ";
+        $sql_fallback .= "LEFT JOIN ".MAIN_DB_PREFIX."c_units u ON cd.fk_unit = u.rowid ";
+        $sql_fallback .= "LEFT JOIN ".MAIN_DB_PREFIX."commande_extrafields c_ef ON c.rowid = c_ef.fk_object ";
+        $sql_fallback .= "LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_ef ON cd.rowid = cd_ef.fk_object ";
+
+        $sql_fallback .= "WHERE c.fk_statut = 1 "; // Commandes validées
+        $sql_fallback .= "AND c.facture = 0 "; // Non facturées
+        $sql_fallback .= "AND c.entity IN (".getEntity('commande').") ";
+        // La commande n'a aucun produit manufacturé
+        $sql_fallback .= "AND NOT EXISTS (";
+        $sql_fallback .= "  SELECT 1 FROM ".MAIN_DB_PREFIX."commandedet cd2 ";
+        $sql_fallback .= "  INNER JOIN ".MAIN_DB_PREFIX."product p2 ON cd2.fk_product = p2.rowid ";
+        $sql_fallback .= "  WHERE cd2.fk_commande = c.rowid ";
+        $sql_fallback .= "  AND p2.finished = 1 ";
+        $sql_fallback .= "  AND cd2.fk_product != 299 ";
+        $sql_fallback .= ") ";
+        // Prendre uniquement le 1er produit non-service de la commande
+        $sql_fallback .= "AND cd.rowid = (";
+        $sql_fallback .= "  SELECT cd_first.rowid FROM ".MAIN_DB_PREFIX."commandedet cd_first ";
+        $sql_fallback .= "  WHERE cd_first.fk_commande = c.rowid ";
+        $sql_fallback .= "  AND cd_first.product_type = 0 ";
+        $sql_fallback .= "  ORDER BY cd_first.rang ASC LIMIT 1 ";
+        $sql_fallback .= ") ";
+
+        // Même filtre de statut que la requête principale
+        switch ($statut_filter) {
+            case 'unplanned':
+                $sql_fallback .= " AND NOT EXISTS (SELECT 1 FROM ".MAIN_DB_PREFIX."planningproduction_planning pp WHERE pp.fk_commandedet = cd.rowid)";
+                $sql_fallback .= " AND (cd_ef.statut_prod IS NULL OR cd_ef.statut_prod = '' OR cd_ef.statut_prod = 'À PRODUIRE' OR cd_ef.statut_prod = 'EN COURS')";
+                break;
+            case 'a_terminer':
+                $sql_fallback .= " AND cd_ef.statut_prod = 'À TERMINER'";
+                break;
+            case 'a_peindre':
+                $sql_fallback .= " AND cd_ef.statut_prod = 'À PEINDRE'";
+                break;
+            case 'a_expedier':
+                $sql_fallback .= " AND cd_ef.statut_prod = 'BON POUR EXPÉDITION'";
+                break;
+        }
+
+        $sql_fallback .= " ORDER BY c.date_creation DESC";
+
+        dol_syslog(get_class($this)."::getCardsByStatus - requête fallback (sans produit manufacturé)", LOG_DEBUG);
+        $resql_fallback = $this->db->query($sql_fallback);
+        if ($resql_fallback) {
+            $num_fallback = $this->db->num_rows($resql_fallback);
+            $j = 0;
+            while ($j < $num_fallback) {
+                $obj = $this->db->fetch_object($resql_fallback);
+                $delivery_address = $this->getDeliveryAddress($obj->commande_id);
+
+                $cards[] = array(
+                    'id' => 'card_' . $statut_filter . '_' . $obj->commandedet_id,
+                    'fk_commande' => $obj->commande_id,
+                    'fk_commandedet' => $obj->commandedet_id,
+                    'commande_ref' => $obj->commande_ref,
+                    'version' => $obj->version ?: 'V1',
+                    'client' => $obj->societe_nom,
+                    'fk_soc' => $obj->fk_soc,
+                    'ref_chantier' => $obj->titre_ref_chantier ?: '-',
+                    'delivery' => $delivery_address,
+                    'deadline' => $obj->delai_liv ?: '-',
+                    'produit' => $obj->produit_label ?: $obj->produit_description,
+                    'produit_ref' => $obj->produit_ref,
+                    'quantity' => $obj->qty,
+                    'unite' => $obj->unite ?: 'u',
+                    'matiere' => $obj->matiere ?: '-',
+                    'statut_mp' => $obj->statut_mp,
+                    'statut_ar' => $obj->statut_ar,
+                    'statut_prod' => $obj->statut_prod ?: 'À PRODUIRE',
+                    'postlaquage' => $obj->postlaquage,
+                    'has_vn' => !empty($obj->has_vn)
+                );
+                $j++;
+            }
+            $this->db->free($resql_fallback);
+        } else {
+            dol_syslog(get_class($this)."::getCardsByStatus - erreur requête fallback: ".$this->db->lasterror(), LOG_ERR);
+        }
+
         return $cards;
     }
 
