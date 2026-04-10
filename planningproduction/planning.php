@@ -399,6 +399,14 @@ if ($planned_cards === false) {
                     <?php echo $langs->trans('SiFondJauneFluo'); ?>
                 </small>
             </div>
+
+            <div class="edit-form-group">
+                <label class="edit-form-label" for="editFpTransmise">FP Transmise à l'atelier</label>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                    <input type="checkbox" id="editFpTransmise" style="width: 18px; height: 18px; cursor: pointer;">
+                    <small style="color: #7f8c8d; font-size: 12px;">Affiche un badge ✓ sur toutes les lignes de la commande</small>
+                </div>
+            </div>
         </form>
 
         <div class="edit-modal-actions">

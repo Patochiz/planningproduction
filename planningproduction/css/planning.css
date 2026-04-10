@@ -1334,6 +1334,27 @@ body:has(.planning-container) .fiche {
     font-weight: 600;
 }
 
+/* Badge FP Transmise à l'atelier */
+.badge-fp-transmise {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-color: #27ae60;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: default;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.badge-fp-transmise.badge-fp-hidden {
+    display: none;
+}
+
 /* ================================================================
    ACTIONS DES CARTES
    ================================================================ */

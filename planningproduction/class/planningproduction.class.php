@@ -172,7 +172,7 @@ class PlanningProduction extends CommonObject
         $sql .= "p.ref as produit_ref, p.label as produit_label, ";
         $sql .= "u.short_label as unite, ";
         // Extrafields de commande
-        $sql .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, ";
+        $sql .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, c_ef.fp_transmise, ";
         // Extrafields de ligne
         $sql .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
         // Sous-requête pour récupérer le ref_chantier du service (ID=361) directement au-dessus
@@ -266,6 +266,7 @@ class PlanningProduction extends CommonObject
                     'statut_ar' => $obj->statut_ar,
                     'statut_prod' => $obj->statut_prod ?: 'À PRODUIRE',
                     'postlaquage' => $obj->postlaquage,
+                    'fp_transmise' => $obj->fp_transmise,
                     'has_vn' => !empty($obj->has_vn)
                 );
 
@@ -286,7 +287,7 @@ class PlanningProduction extends CommonObject
         $sql_fallback .= "cd.description as produit_description, cd.qty, cd.product_type, ";
         $sql_fallback .= "p.ref as produit_ref, p.label as produit_label, ";
         $sql_fallback .= "u.short_label as unite, ";
-        $sql_fallback .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, ";
+        $sql_fallback .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, c_ef.fp_transmise, ";
         $sql_fallback .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
         $sql_fallback .= "(SELECT cd_titre_ef.ref_chantier ";
         $sql_fallback .= " FROM ".MAIN_DB_PREFIX."commandedet cd_titre ";
@@ -378,6 +379,7 @@ class PlanningProduction extends CommonObject
                     'statut_ar' => $obj->statut_ar,
                     'statut_prod' => $obj->statut_prod ?: 'À PRODUIRE',
                     'postlaquage' => $obj->postlaquage,
+                    'fp_transmise' => $obj->fp_transmise,
                     'has_vn' => !empty($obj->has_vn)
                 );
                 $j++;
@@ -508,7 +510,7 @@ class PlanningProduction extends CommonObject
         $sql .= "p.ref as produit_ref, p.label as produit_label, ";
         $sql .= "u.short_label as unite, ";
         // Extrafields de commande
-        $sql .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, ";
+        $sql .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, c_ef.fp_transmise, ";
         // Extrafields de ligne
         $sql .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
         // Sous-requête pour récupérer le ref_chantier du service (ID=361) directement au-dessus
@@ -584,6 +586,7 @@ class PlanningProduction extends CommonObject
                     'statut_ar' => $obj->statut_ar,
                     'statut_prod' => $obj->statut_prod,
                     'postlaquage' => $obj->postlaquage,
+                    'fp_transmise' => $obj->fp_transmise,
                     'has_vn' => !empty($obj->has_vn),
                     'groupe' => $obj->groupe_nom ?: 'Groupe par défaut',
                     'semaine' => $obj->semaine
@@ -792,6 +795,58 @@ class PlanningProduction extends CommonObject
         } else {
             $this->errors[] = "Error ".$this->db->lasterror();
             dol_syslog(get_class($this)."::updateCommandedetExtrafields ".$this->db->lasterror(), LOG_ERR);
+            return -1;
+        }
+    }
+
+    /**
+     * Mettre à jour les extrafields d'une commande (niveau commande)
+     *
+     * @param int $fk_commande ID de la commande
+     * @param array $fields Champs à mettre à jour
+     * @return int 1 si OK, -1 si erreur
+     */
+    public function updateCommandeExtrafields($fk_commande, $fields)
+    {
+        $sql_parts = array();
+
+        if (isset($fields['fp_transmise'])) {
+            $sql_parts[] = "fp_transmise = '".$this->db->escape($fields['fp_transmise'])."'";
+        }
+
+        if (empty($sql_parts)) {
+            return 1; // Rien à faire
+        }
+
+        // Vérifier si l'enregistrement extrafields existe
+        $sql_check = "SELECT COUNT(*) as nb FROM ".MAIN_DB_PREFIX."commande_extrafields ";
+        $sql_check .= "WHERE fk_object = ".((int) $fk_commande);
+
+        $resql = $this->db->query($sql_check);
+        if (!$resql) {
+            return -1;
+        }
+
+        $obj = $this->db->fetch_object($resql);
+        if ($obj->nb > 0) {
+            // Mise à jour
+            $sql = "UPDATE ".MAIN_DB_PREFIX."commande_extrafields SET ";
+            $sql .= implode(', ', $sql_parts);
+            $sql .= " WHERE fk_object = ".((int) $fk_commande);
+        } else {
+            // Insertion
+            $fp_val = isset($fields['fp_transmise']) ? $this->db->escape($fields['fp_transmise']) : 'non';
+            $sql = "INSERT INTO ".MAIN_DB_PREFIX."commande_extrafields (fk_object, fp_transmise) VALUES (";
+            $sql .= ((int) $fk_commande).", '".$fp_val."')";
+        }
+
+        dol_syslog(get_class($this)."::updateCommandeExtrafields", LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            return 1;
+        } else {
+            $this->errors[] = "Error ".$this->db->lasterror();
+            dol_syslog(get_class($this)."::updateCommandeExtrafields ".$this->db->lasterror(), LOG_ERR);
             return -1;
         }
     }
