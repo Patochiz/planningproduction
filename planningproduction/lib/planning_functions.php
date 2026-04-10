@@ -51,7 +51,8 @@ function generateCardHTML($card, $langs)
     $html .= 'data-produit="' . htmlspecialchars($card['produit'] ?? '') . '" ';
     $html .= 'data-produit-ref="' . htmlspecialchars($card['produit_ref'] ?? '') . '" ';
     $html .= 'data-quantity="' . ($card['quantity'] ?? 0) . '" ';
-    $html .= 'data-unite="' . htmlspecialchars($card['unite'] ?? 'u') . '">';
+    $html .= 'data-unite="' . htmlspecialchars($card['unite'] ?? 'u') . '" ';
+    $html .= 'data-fp-transmise="' . htmlspecialchars($card['fp_transmise'] ?? 'non') . '">';
     
     // Header de la carte avec titre et actions
     $html .= '<div class="card-header">';
@@ -110,6 +111,8 @@ function generateCardHTML($card, $langs)
     $html .= '<div class="card-actions">';
     $html .= '<button class="card-btn card-btn-edit" title="' . $langs->trans('Editer') . '">✏️</button>';
     $html .= '<button class="card-btn card-btn-delete" title="' . $langs->trans('Deplanifier') . '">🗑️</button>';
+    $fp_hidden = (empty($card['fp_transmise']) || $card['fp_transmise'] != 'oui') ? ' badge-fp-hidden' : '';
+    $html .= '<span class="badge-fp-transmise' . $fp_hidden . '" title="FP Transmise à l\'atelier">✓</span>';
     $html .= '</div>';
     $html .= '</div>';
     $html .= '</div>';

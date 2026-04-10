@@ -464,7 +464,9 @@ if ($data === false && $type !== 'global') {
     .badge-ar-waiting { background: #f8d7da; color: #e74c3c; }
     .badge-peindre { background: #fff3cd; color: #f39c12; }
     .badge-production { background: #e8f4fd; color: #3498db; }
-    
+    .badge-fp-transmise { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background-color: #27ae60; color: white; font-size: 13px; font-weight: bold; cursor: default; flex-shrink: 0; line-height: 1; vertical-align: middle; margin-left: 2px; }
+    .badge-fp-transmise.badge-fp-hidden { display: none; }
+
     /* Cellule de statuts */
     .status-cell {
         font-size: 7pt;
@@ -989,6 +991,14 @@ if ($data === false && $type !== 'global') {
                     </select>
                     <small style="color:#7f8c8d;font-size:12px;margin-top:5px;display:block;">Si fond jaune fluo</small>
                 </div>
+
+                <div class="edit-form-group">
+                    <label class="edit-form-label" for="editFpTransmise">FP Transmise à l'atelier</label>
+                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+                        <input type="checkbox" id="editFpTransmise" style="width: 18px; height: 18px; cursor: pointer;">
+                        <small style="color: #7f8c8d; font-size: 12px;">Affiche un badge ✓ sur toutes les lignes de la commande</small>
+                    </div>
+                </div>
             </form>
 
             <div class="edit-modal-actions">
@@ -1042,7 +1052,7 @@ if ($data === false && $type !== 'global') {
     // Ouvre le modal depuis un bouton de ligne (data-attributes)
     function openCardModal(btn) {
         // On construit un objet "carte virtuelle" que saveCardEdit() peut utiliser
-        currentEditCard = { dataset: { fkCommandedet: btn.dataset.id } };
+        currentEditCard = { dataset: { fkCommandedet: btn.dataset.id, fkCommande: btn.dataset.fkCommande } };
 
         // Remplir les infos affichées
         document.getElementById('editCurrentTitle').textContent       = btn.dataset.client   || '-';
@@ -1064,6 +1074,10 @@ if ($data === false && $type !== 'global') {
         document.getElementById('editMpStatus').value         = btn.dataset.statutMp     || '';
         document.getElementById('editProductionStatus').value = btn.dataset.statutProd   || 'À PRODUIRE';
         document.getElementById('editPeindre').value          = btn.dataset.postlaquage  || 'non';
+
+        // Détecter l'état FP Transmise à l'atelier
+        var fpCheckbox = document.getElementById('editFpTransmise');
+        if (fpCheckbox) fpCheckbox.checked = (btn.dataset.fpTransmise === 'oui');
 
         updateBadgePreview('mp', document.getElementById('editMpStatus').value);
         document.getElementById('editModal').classList.add('show');
@@ -1115,10 +1129,13 @@ if ($data === false && $type !== 'global') {
     function saveCardEdit() {
         if (!currentEditCard) return;
         var fkCommandedet    = currentEditCard.dataset.fkCommandedet;
+        var fkCommande       = currentEditCard.dataset.fkCommande;
         var matiereValue     = document.getElementById('editMatiere').value.trim();
         var mpStatus         = document.getElementById('editMpStatus').value;
         var prodStatus       = document.getElementById('editProductionStatus').value;
         var peindreStatus    = document.getElementById('editPeindre').value;
+        var fpCheckbox       = document.getElementById('editFpTransmise');
+        var fpTransmiseValue = fpCheckbox && fpCheckbox.checked ? 'oui' : 'non';
 
         if (!fkCommandedet) {
             showToast('Erreur : données de la carte manquantes', 'error');
@@ -1132,6 +1149,10 @@ if ($data === false && $type !== 'global') {
         formData.append('statut_mp',      mpStatus);
         formData.append('statut_prod',    prodStatus);
         formData.append('postlaquage',    peindreStatus);
+        if (fkCommande) {
+            formData.append('fk_commande',    fkCommande);
+            formData.append('fp_transmise',   fpTransmiseValue);
+        }
         if (window.DOLIBARR_PLANNING_CONFIG && window.DOLIBARR_PLANNING_CONFIG.current_token) {
             formData.append('token', window.DOLIBARR_PLANNING_CONFIG.current_token);
         }
@@ -1337,6 +1358,7 @@ function renderCardsTable($cards, $langs)
 
         // Bouton popup
         $btn_data  = ' data-id="' . (int)($card['fk_commandedet'] ?? 0) . '"';
+        $btn_data .= ' data-fk-commande="' . (int)($card['fk_commande'] ?? 0) . '"';
         $btn_data .= ' data-client="' . htmlspecialchars($card['client'] ?? '', ENT_QUOTES) . '"';
         $btn_data .= ' data-commande="' . htmlspecialchars(($card['commande_ref'] ?? '') . (!empty($card['version']) ? ' ' . $card['version'] : ''), ENT_QUOTES) . '"';
         $btn_data .= ' data-commande-url="' . htmlspecialchars(DOL_URL_ROOT . '/commande/card.php?id=' . (int)($card['fk_commande'] ?? 0), ENT_QUOTES) . '"';
@@ -1346,7 +1368,9 @@ function renderCardsTable($cards, $langs)
         $btn_data .= ' data-statut-mp="' . htmlspecialchars($card['statut_mp'] ?? '', ENT_QUOTES) . '"';
         $btn_data .= ' data-statut-prod="' . htmlspecialchars($card['statut_prod'] ?? '', ENT_QUOTES) . '"';
         $btn_data .= ' data-postlaquage="' . htmlspecialchars($card['postlaquage'] ?? 'non', ENT_QUOTES) . '"';
-        echo '<td class="no-print"><input type="checkbox" class="row-checkbox" data-qty="' . floatval($card['quantity'] ?? 0) . '" data-unite="' . htmlspecialchars($card['unite'] ?? 'u', ENT_QUOTES) . '" onchange="updateSelectionNotification()"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button></td>';
+        $btn_data .= ' data-fp-transmise="' . htmlspecialchars($card['fp_transmise'] ?? 'non', ENT_QUOTES) . '"';
+        $fp_hidden_tab = (empty($card['fp_transmise']) || $card['fp_transmise'] != 'oui') ? ' badge-fp-hidden' : '';
+        echo '<td class="no-print"><input type="checkbox" class="row-checkbox" data-qty="' . floatval($card['quantity'] ?? 0) . '" data-unite="' . htmlspecialchars($card['unite'] ?? 'u', ENT_QUOTES) . '" onchange="updateSelectionNotification()"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button><span class="badge-fp-transmise' . $fp_hidden_tab . '" title="FP Transmise à l\'atelier">✓</span></td>';
 
         echo '</tr>';
     }
@@ -1532,6 +1556,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
 
                 // Bouton popup
                 $btn_data  = ' data-id="' . (int)($card['fk_commandedet'] ?? 0) . '"';
+                $btn_data .= ' data-fk-commande="' . (int)($card['fk_commande'] ?? 0) . '"';
                 $btn_data .= ' data-client="' . htmlspecialchars($card['client'] ?? '', ENT_QUOTES) . '"';
                 $btn_data .= ' data-commande="' . htmlspecialchars(($card['commande_ref'] ?? '') . (!empty($card['version']) ? ' ' . $card['version'] : ''), ENT_QUOTES) . '"';
                 $btn_data .= ' data-commande-url="' . htmlspecialchars(DOL_URL_ROOT . '/commande/card.php?id=' . (int)($card['fk_commande'] ?? 0), ENT_QUOTES) . '"';
@@ -1541,7 +1566,9 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 $btn_data .= ' data-statut-mp="' . htmlspecialchars($card['statut_mp'] ?? '', ENT_QUOTES) . '"';
                 $btn_data .= ' data-statut-prod="' . htmlspecialchars($card['statut_prod'] ?? '', ENT_QUOTES) . '"';
                 $btn_data .= ' data-postlaquage="' . htmlspecialchars($card['postlaquage'] ?? 'non', ENT_QUOTES) . '"';
-                echo '<td class="no-print"><input type="checkbox" class="row-checkbox" data-qty="' . floatval($card['quantity'] ?? 0) . '" data-unite="' . htmlspecialchars($card['unite'] ?? 'u', ENT_QUOTES) . '" onchange="updateSelectionNotification()"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button></td>';
+                $btn_data .= ' data-fp-transmise="' . htmlspecialchars($card['fp_transmise'] ?? 'non', ENT_QUOTES) . '"';
+                $fp_hidden_plan = (empty($card['fp_transmise']) || $card['fp_transmise'] != 'oui') ? ' badge-fp-hidden' : '';
+                echo '<td class="no-print"><input type="checkbox" class="row-checkbox" data-qty="' . floatval($card['quantity'] ?? 0) . '" data-unite="' . htmlspecialchars($card['unite'] ?? 'u', ENT_QUOTES) . '" onchange="updateSelectionNotification()"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button><span class="badge-fp-transmise' . $fp_hidden_plan . '" title="FP Transmise à l\'atelier">✓</span></td>';
 
                 echo '</tr>';
             }

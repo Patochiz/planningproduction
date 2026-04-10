@@ -159,7 +159,12 @@ function openEditModal(card) {
     const hasPaintIcon = card.querySelector('.badge-peindre');
     const hasYellowBg = card.classList.contains('paint-required');
     document.getElementById('editPeindre').value = (hasPaintIcon || hasYellowBg) ? 'oui' : 'non';
-    
+
+    // Détecter l'état FP Transmise à l'atelier
+    const fpTransmise = card.dataset.fpTransmise || 'non';
+    const editFpCheckbox = document.getElementById('editFpTransmise');
+    if (editFpCheckbox) editFpCheckbox.checked = (fpTransmise === 'oui');
+
     updateBadgePreview('mp', document.getElementById('editMpStatus').value);
     modal.classList.add('show');
 }
@@ -226,10 +231,13 @@ function saveCardEdit() {
     if (!currentEditCard) return;
     
     const fkCommandedet = currentEditCard.dataset.fkCommandedet;
+    const fkCommande = currentEditCard.dataset.fkCommande;
     const matiereValue = document.getElementById('editMatiere').value.trim();
     const mpStatus = document.getElementById('editMpStatus').value;
     const prodStatus = document.getElementById('editProductionStatus').value;
     const peindreStatus = document.getElementById('editPeindre').value;
+    const editFpCheckbox = document.getElementById('editFpTransmise');
+    const fpTransmiseValue = editFpCheckbox && editFpCheckbox.checked ? 'oui' : 'non';
     
     if (!fkCommandedet) {
         showToast('Erreur : données de la carte manquantes', 'error');
@@ -254,10 +262,12 @@ function saveCardEdit() {
     const formData = new FormData();
     formData.append('action', 'update_card');
     formData.append('fk_commandedet', fkCommandedet);
+    formData.append('fk_commande', fkCommande);
     formData.append('matiere', matiereValue);
     formData.append('statut_mp', mpStatus);
     formData.append('statut_prod', prodStatus);
     formData.append('postlaquage', peindreStatus);
+    formData.append('fp_transmise', fpTransmiseValue);
     
     // Ajouter le token CSRF si disponible
     if (window.DOLIBARR_PLANNING_CONFIG && window.DOLIBARR_PLANNING_CONFIG.current_token) {
@@ -272,18 +282,31 @@ function saveCardEdit() {
     .then(data => {
         if (data.success) {
             let message = 'Carte mise à jour';
-            
+
             if (willMoveToTabs) {
                 message += ' et déplacée vers ' + newTabLocation;
             }
-            
+
             showToast(message, 'success');
-            
+
             // Mettre à jour la bordure de la carte immédiatement
             if (currentEditCard && typeof updateCardBorder === 'function') {
                 updateCardBorder(currentEditCard);
             }
-            
+
+            // Mettre à jour le badge FP Transmise sur toutes les cartes de la même commande
+            document.querySelectorAll('.kanban-card[data-fk-commande="' + fkCommande + '"] .badge-fp-transmise').forEach(function(badge) {
+                if (fpTransmiseValue === 'oui') {
+                    badge.classList.remove('badge-fp-hidden');
+                } else {
+                    badge.classList.add('badge-fp-hidden');
+                }
+            });
+            // Mettre à jour le data attribute sur toutes les cartes de la même commande
+            document.querySelectorAll('.kanban-card[data-fk-commande="' + fkCommande + '"]').forEach(function(c) {
+                c.dataset.fpTransmise = fpTransmiseValue;
+            });
+
             closeEditModal();
             
             // Si la carte va changer d'emplacement, recharger la page
