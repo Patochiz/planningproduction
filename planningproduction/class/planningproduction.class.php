@@ -822,9 +822,7 @@ class PlanningProduction extends CommonObject
         $fp_val = $this->db->escape($fields['fp_transmise']);
         $fk_commande = (int) $fk_commande;
 
-        // UPDATE direct : met à jour TOUTES les lignes du fk_object (y compris les éventuels doublons).
-        // Pas d'INSERT ici car commande_extrafields n'a pas nécessairement de contrainte UNIQUE sur
-        // fk_object, et insérer une nouvelle ligne crée des doublons qui cassent le LEFT JOIN.
+        // 1) Tenter un UPDATE sur toutes les lignes existantes du fk_object.
         $sql  = "UPDATE ".MAIN_DB_PREFIX."commande_extrafields ";
         $sql .= "SET fp_transmise = '".$fp_val."' ";
         $sql .= "WHERE fk_object = ".$fk_commande;
@@ -835,6 +833,21 @@ class PlanningProduction extends CommonObject
             $this->errors[] = "Error ".$this->db->lasterror();
             dol_syslog(get_class($this)."::updateCommandeExtrafields ".$this->db->lasterror(), LOG_ERR);
             return -1;
+        }
+
+        // 2) Si aucune ligne n'existait (affected_rows = 0), créer la ligne.
+        //    On ne fait l'INSERT qu'après avoir vérifié 0 lignes mises à jour,
+        //    ce qui évite de créer des doublons quand la ligne existe déjà.
+        if ($this->db->affected_rows($resql) == 0) {
+            $sql_insert  = "INSERT INTO ".MAIN_DB_PREFIX."commande_extrafields (fk_object, fp_transmise) ";
+            $sql_insert .= "VALUES (".$fk_commande.", '".$fp_val."')";
+            dol_syslog(get_class($this)."::updateCommandeExtrafields insert sql=".$sql_insert, LOG_DEBUG);
+            $resql2 = $this->db->query($sql_insert);
+            if (!$resql2) {
+                $this->errors[] = "Error ".$this->db->lasterror();
+                dol_syslog(get_class($this)."::updateCommandeExtrafields ".$this->db->lasterror(), LOG_ERR);
+                return -1;
+            }
         }
 
         return 1;
