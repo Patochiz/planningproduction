@@ -159,7 +159,7 @@ class PlanningProduction extends CommonObject
         // SHOW COLUMNS est plus compatible que information_schema (évite les problèmes de droits)
         $resql_check = $this->db->query("SHOW COLUMNS FROM " . MAIN_DB_PREFIX . "commande_extrafields LIKE 'fp_transmise'");
         if ($resql_check && $this->db->num_rows($resql_check) == 0) {
-            $this->db->query("ALTER TABLE " . MAIN_DB_PREFIX . "commande_extrafields ADD COLUMN fp_transmise varchar(3) DEFAULT 'non'");
+            $this->db->query("ALTER TABLE " . MAIN_DB_PREFIX . "commande_extrafields ADD COLUMN fp_transmise tinyint(4) DEFAULT 0");
         }
     }
 
@@ -819,12 +819,13 @@ class PlanningProduction extends CommonObject
             return 1; // Rien à faire
         }
 
-        $fp_val = $this->db->escape($fields['fp_transmise']);
+        // La colonne fp_transmise est TINYINT — stocker 1 ou 0 (entier pur, sans guillemets).
+        $fp_int  = (int) $fields['fp_transmise']; // '1' → 1, '0' → 0, 'oui' → 0 (sécurité)
         $fk_commande = (int) $fk_commande;
 
         // 1) Tenter un UPDATE sur toutes les lignes existantes du fk_object.
         $sql  = "UPDATE ".MAIN_DB_PREFIX."commande_extrafields ";
-        $sql .= "SET fp_transmise = '".$fp_val."' ";
+        $sql .= "SET fp_transmise = ".$fp_int." ";
         $sql .= "WHERE fk_object = ".$fk_commande;
 
         dol_syslog(get_class($this)."::updateCommandeExtrafields sql=".$sql, LOG_DEBUG);
@@ -836,11 +837,9 @@ class PlanningProduction extends CommonObject
         }
 
         // 2) Si aucune ligne n'existait (affected_rows = 0), créer la ligne.
-        //    On ne fait l'INSERT qu'après avoir vérifié 0 lignes mises à jour,
-        //    ce qui évite de créer des doublons quand la ligne existe déjà.
         if ($this->db->affected_rows($resql) == 0) {
             $sql_insert  = "INSERT INTO ".MAIN_DB_PREFIX."commande_extrafields (fk_object, fp_transmise) ";
-            $sql_insert .= "VALUES (".$fk_commande.", '".$fp_val."')";
+            $sql_insert .= "VALUES (".$fk_commande.", ".$fp_int.")";
             dol_syslog(get_class($this)."::updateCommandeExtrafields insert sql=".$sql_insert, LOG_DEBUG);
             $resql2 = $this->db->query($sql_insert);
             if (!$resql2) {

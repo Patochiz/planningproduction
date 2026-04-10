@@ -163,7 +163,7 @@ function openEditModal(card) {
     // Détecter l'état FP Transmise à l'atelier
     const fpTransmise = card.dataset.fpTransmise || 'non';
     const editFpCheckbox = document.getElementById('editFpTransmise');
-    if (editFpCheckbox) editFpCheckbox.checked = (fpTransmise === 'oui' || fpTransmise === '1');
+    if (editFpCheckbox) editFpCheckbox.checked = (fpTransmise !== '' && fpTransmise !== '0' && fpTransmise !== 'non');
 
     updateBadgePreview('mp', document.getElementById('editMpStatus').value);
     modal.classList.add('show');

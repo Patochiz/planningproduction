@@ -152,6 +152,10 @@ try {
             if ($fp_transmise !== '' && !in_array($fp_transmise, $valid_fp_transmise)) {
                 throw new Exception('Invalid fp_transmise value');
             }
+            // Normaliser en valeur entière pour la colonne TINYINT de Dolibarr :
+            // MySQL convertit les chaînes non-numériques ('oui') en 0, ce qui efface la valeur.
+            if ($fp_transmise === 'oui') $fp_transmise = '1';
+            elseif ($fp_transmise === 'non') $fp_transmise = '0';
             
             // Préparer les champs à mettre à jour
             $fields = array();
