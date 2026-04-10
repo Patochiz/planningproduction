@@ -1077,7 +1077,8 @@ if ($data === false && $type !== 'global') {
 
         // Détecter l'état FP Transmise à l'atelier
         var fpCheckbox = document.getElementById('editFpTransmise');
-        if (fpCheckbox) fpCheckbox.checked = (btn.dataset.fpTransmise === 'oui');
+        var fpVal = btn.dataset.fpTransmise || '0';
+        if (fpCheckbox) fpCheckbox.checked = (fpVal !== '' && fpVal !== '0' && fpVal !== 'non');
 
         updateBadgePreview('mp', document.getElementById('editMpStatus').value);
         document.getElementById('editModal').classList.add('show');
@@ -1369,7 +1370,7 @@ function renderCardsTable($cards, $langs)
         $btn_data .= ' data-statut-prod="' . htmlspecialchars($card['statut_prod'] ?? '', ENT_QUOTES) . '"';
         $btn_data .= ' data-postlaquage="' . htmlspecialchars($card['postlaquage'] ?? 'non', ENT_QUOTES) . '"';
         $btn_data .= ' data-fp-transmise="' . htmlspecialchars($card['fp_transmise'] ?? 'non', ENT_QUOTES) . '"';
-        $fp_hidden_tab = (empty($card['fp_transmise']) || $card['fp_transmise'] != 'oui') ? ' badge-fp-hidden' : '';
+        $fp_hidden_tab = !empty($card['fp_transmise']) && $card['fp_transmise'] != '0' ? '' : ' badge-fp-hidden';
         echo '<td class="no-print"><input type="checkbox" class="row-checkbox" data-qty="' . floatval($card['quantity'] ?? 0) . '" data-unite="' . htmlspecialchars($card['unite'] ?? 'u', ENT_QUOTES) . '" onchange="updateSelectionNotification()"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button><span class="badge-fp-transmise' . $fp_hidden_tab . '" title="FP Transmise à l\'atelier">✓</span></td>';
 
         echo '</tr>';
@@ -1567,7 +1568,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 $btn_data .= ' data-statut-prod="' . htmlspecialchars($card['statut_prod'] ?? '', ENT_QUOTES) . '"';
                 $btn_data .= ' data-postlaquage="' . htmlspecialchars($card['postlaquage'] ?? 'non', ENT_QUOTES) . '"';
                 $btn_data .= ' data-fp-transmise="' . htmlspecialchars($card['fp_transmise'] ?? 'non', ENT_QUOTES) . '"';
-                $fp_hidden_plan = (empty($card['fp_transmise']) || $card['fp_transmise'] != 'oui') ? ' badge-fp-hidden' : '';
+                $fp_hidden_plan = !empty($card['fp_transmise']) && $card['fp_transmise'] != '0' ? '' : ' badge-fp-hidden';
                 echo '<td class="no-print"><input type="checkbox" class="row-checkbox" data-qty="' . floatval($card['quantity'] ?? 0) . '" data-unite="' . htmlspecialchars($card['unite'] ?? 'u', ENT_QUOTES) . '" onchange="updateSelectionNotification()"><button class="btn-popup-row"' . $btn_data . ' onclick="openCardModal(this)">✏️</button><span class="badge-fp-transmise' . $fp_hidden_plan . '" title="FP Transmise à l\'atelier">✓</span></td>';
 
                 echo '</tr>';

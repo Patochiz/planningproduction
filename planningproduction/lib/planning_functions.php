@@ -111,7 +111,7 @@ function generateCardHTML($card, $langs)
     $html .= '<div class="card-actions">';
     $html .= '<button class="card-btn card-btn-edit" title="' . $langs->trans('Editer') . '">✏️</button>';
     $html .= '<button class="card-btn card-btn-delete" title="' . $langs->trans('Deplanifier') . '">🗑️</button>';
-    $fp_hidden = (empty($card['fp_transmise']) || $card['fp_transmise'] != 'oui') ? ' badge-fp-hidden' : '';
+    $fp_hidden = !empty($card['fp_transmise']) && $card['fp_transmise'] != '0' ? '' : ' badge-fp-hidden';
     $html .= '<span class="badge-fp-transmise' . $fp_hidden . '" title="FP Transmise à l\'atelier">✓</span>';
     $html .= '</div>';
     $html .= '</div>';

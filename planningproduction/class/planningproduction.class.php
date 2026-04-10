@@ -156,16 +156,10 @@ class PlanningProduction extends CommonObject
         }
 
         // Migration automatique : créer la colonne fp_transmise si elle n'existe pas
-        $sql_check = "SELECT COUNT(*) as nb FROM information_schema.COLUMNS ";
-        $sql_check .= "WHERE TABLE_SCHEMA = DATABASE() ";
-        $sql_check .= "AND TABLE_NAME = '" . MAIN_DB_PREFIX . "commande_extrafields' ";
-        $sql_check .= "AND COLUMN_NAME = 'fp_transmise'";
-        $resql_check = $this->db->query($sql_check);
-        if ($resql_check) {
-            $obj_check = $this->db->fetch_object($resql_check);
-            if ($obj_check->nb == 0) {
-                $this->db->query("ALTER TABLE " . MAIN_DB_PREFIX . "commande_extrafields ADD COLUMN fp_transmise varchar(3) DEFAULT 'non'");
-            }
+        // SHOW COLUMNS est plus compatible que information_schema (évite les problèmes de droits)
+        $resql_check = $this->db->query("SHOW COLUMNS FROM " . MAIN_DB_PREFIX . "commande_extrafields LIKE 'fp_transmise'");
+        if ($resql_check && $this->db->num_rows($resql_check) == 0) {
+            $this->db->query("ALTER TABLE " . MAIN_DB_PREFIX . "commande_extrafields ADD COLUMN fp_transmise tinyint(4) DEFAULT 0");
         }
     }
 
@@ -821,47 +815,41 @@ class PlanningProduction extends CommonObject
      */
     public function updateCommandeExtrafields($fk_commande, $fields)
     {
-        $sql_parts = array();
-
-        if (isset($fields['fp_transmise'])) {
-            $sql_parts[] = "fp_transmise = '".$this->db->escape($fields['fp_transmise'])."'";
-        }
-
-        if (empty($sql_parts)) {
+        if (!isset($fields['fp_transmise'])) {
             return 1; // Rien à faire
         }
 
-        // Vérifier si l'enregistrement extrafields existe
-        $sql_check = "SELECT COUNT(*) as nb FROM ".MAIN_DB_PREFIX."commande_extrafields ";
-        $sql_check .= "WHERE fk_object = ".((int) $fk_commande);
+        // La colonne fp_transmise est TINYINT — stocker 1 ou 0 (entier pur, sans guillemets).
+        $fp_int  = (int) $fields['fp_transmise']; // '1' → 1, '0' → 0, 'oui' → 0 (sécurité)
+        $fk_commande = (int) $fk_commande;
 
-        $resql = $this->db->query($sql_check);
-        if (!$resql) {
-            return -1;
-        }
+        // 1) Tenter un UPDATE sur toutes les lignes existantes du fk_object.
+        $sql  = "UPDATE ".MAIN_DB_PREFIX."commande_extrafields ";
+        $sql .= "SET fp_transmise = ".$fp_int." ";
+        $sql .= "WHERE fk_object = ".$fk_commande;
 
-        $obj = $this->db->fetch_object($resql);
-        if ($obj->nb > 0) {
-            // Mise à jour
-            $sql = "UPDATE ".MAIN_DB_PREFIX."commande_extrafields SET ";
-            $sql .= implode(', ', $sql_parts);
-            $sql .= " WHERE fk_object = ".((int) $fk_commande);
-        } else {
-            // Insertion
-            $fp_val = isset($fields['fp_transmise']) ? $this->db->escape($fields['fp_transmise']) : 'non';
-            $sql = "INSERT INTO ".MAIN_DB_PREFIX."commande_extrafields (fk_object, fp_transmise) VALUES (";
-            $sql .= ((int) $fk_commande).", '".$fp_val."')";
-        }
-
-        dol_syslog(get_class($this)."::updateCommandeExtrafields", LOG_DEBUG);
+        dol_syslog(get_class($this)."::updateCommandeExtrafields sql=".$sql, LOG_DEBUG);
         $resql = $this->db->query($sql);
-        if ($resql) {
-            return 1;
-        } else {
+        if (!$resql) {
             $this->errors[] = "Error ".$this->db->lasterror();
             dol_syslog(get_class($this)."::updateCommandeExtrafields ".$this->db->lasterror(), LOG_ERR);
             return -1;
         }
+
+        // 2) Si aucune ligne n'existait (affected_rows = 0), créer la ligne.
+        if ($this->db->affected_rows($resql) == 0) {
+            $sql_insert  = "INSERT INTO ".MAIN_DB_PREFIX."commande_extrafields (fk_object, fp_transmise) ";
+            $sql_insert .= "VALUES (".$fk_commande.", ".$fp_int.")";
+            dol_syslog(get_class($this)."::updateCommandeExtrafields insert sql=".$sql_insert, LOG_DEBUG);
+            $resql2 = $this->db->query($sql_insert);
+            if (!$resql2) {
+                $this->errors[] = "Error ".$this->db->lasterror();
+                dol_syslog(get_class($this)."::updateCommandeExtrafields ".$this->db->lasterror(), LOG_ERR);
+                return -1;
+            }
+        }
+
+        return 1;
     }
 
     // ========== MÉTHODES POUR LA GESTION DES MATIÈRES PREMIÈRES ==========
