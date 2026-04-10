@@ -154,6 +154,19 @@ class PlanningProduction extends CommonObject
                 }
             }
         }
+
+        // Migration automatique : créer la colonne fp_transmise si elle n'existe pas
+        $sql_check = "SELECT COUNT(*) as nb FROM information_schema.COLUMNS ";
+        $sql_check .= "WHERE TABLE_SCHEMA = DATABASE() ";
+        $sql_check .= "AND TABLE_NAME = '" . MAIN_DB_PREFIX . "commande_extrafields' ";
+        $sql_check .= "AND COLUMN_NAME = 'fp_transmise'";
+        $resql_check = $this->db->query($sql_check);
+        if ($resql_check) {
+            $obj_check = $this->db->fetch_object($resql_check);
+            if ($obj_check->nb == 0) {
+                $this->db->query("ALTER TABLE " . MAIN_DB_PREFIX . "commande_extrafields ADD COLUMN fp_transmise varchar(3) DEFAULT 'non'");
+            }
+        }
     }
 
     /**
