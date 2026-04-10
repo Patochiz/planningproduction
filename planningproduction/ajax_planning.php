@@ -176,15 +176,20 @@ try {
             $result = $object->updateCommandedetExtrafields($fk_commandedet, $fields);
 
             // Mettre à jour fp_transmise au niveau de la commande si fourni
+            $fp_result = 1;
             if ($fp_transmise !== '' && $fk_commande > 0) {
-                $object->updateCommandeExtrafields($fk_commande, array('fp_transmise' => $fp_transmise));
+                $fp_result = $object->updateCommandeExtrafields($fk_commande, array('fp_transmise' => $fp_transmise));
+                if ($fp_result < 0) {
+                    dol_syslog("AJAX Planning: updateCommandeExtrafields failed for commande $fk_commande: ".implode(', ', $object->errors), LOG_ERR);
+                }
             }
 
             if ($result > 0) {
                 $response['success'] = true;
                 $response['message'] = 'Card updated successfully';
+                $response['fp_transmise_saved'] = ($fp_result > 0);
                 $response['data'] = array('fk_commandedet' => $fk_commandedet, 'fields_updated' => array_keys($fields));
-                dol_syslog("AJAX Planning: Card $fk_commandedet updated successfully", LOG_INFO);
+                dol_syslog("AJAX Planning: Card $fk_commandedet updated successfully (fp_result=$fp_result)", LOG_INFO);
             } else {
                 throw new Exception('Failed to update card: ' . implode(', ', $object->errors));
             }
