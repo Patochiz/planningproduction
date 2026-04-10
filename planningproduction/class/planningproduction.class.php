@@ -820,34 +820,24 @@ class PlanningProduction extends CommonObject
         }
 
         $fp_val = $this->db->escape($fields['fp_transmise']);
+        $fk_commande = (int) $fk_commande;
 
-        // INSERT ... ON DUPLICATE KEY UPDATE : gère en une seule requête
-        // le cas où la ligne existe déjà ET le cas où elle n'existe pas.
-        // Nécessite une clé UNIQUE ou PRIMARY sur fk_object (standard Dolibarr).
-        $sql  = "INSERT INTO ".MAIN_DB_PREFIX."commande_extrafields (fk_object, fp_transmise) ";
-        $sql .= "VALUES (".((int) $fk_commande).", '".$fp_val."') ";
-        $sql .= "ON DUPLICATE KEY UPDATE fp_transmise = '".$fp_val."'";
+        // UPDATE direct : met à jour TOUTES les lignes du fk_object (y compris les éventuels doublons).
+        // Pas d'INSERT ici car commande_extrafields n'a pas nécessairement de contrainte UNIQUE sur
+        // fk_object, et insérer une nouvelle ligne crée des doublons qui cassent le LEFT JOIN.
+        $sql  = "UPDATE ".MAIN_DB_PREFIX."commande_extrafields ";
+        $sql .= "SET fp_transmise = '".$fp_val."' ";
+        $sql .= "WHERE fk_object = ".$fk_commande;
 
         dol_syslog(get_class($this)."::updateCommandeExtrafields sql=".$sql, LOG_DEBUG);
         $resql = $this->db->query($sql);
-        if ($resql) {
-            return 1;
+        if (!$resql) {
+            $this->errors[] = "Error ".$this->db->lasterror();
+            dol_syslog(get_class($this)."::updateCommandeExtrafields ".$this->db->lasterror(), LOG_ERR);
+            return -1;
         }
 
-        // Si ON DUPLICATE KEY n'est pas supporté (cas rare), repli sur UPDATE seul
-        $sql_fallback  = "UPDATE ".MAIN_DB_PREFIX."commande_extrafields ";
-        $sql_fallback .= "SET fp_transmise = '".$fp_val."' ";
-        $sql_fallback .= "WHERE fk_object = ".((int) $fk_commande);
-
-        dol_syslog(get_class($this)."::updateCommandeExtrafields fallback sql=".$sql_fallback, LOG_DEBUG);
-        $resql = $this->db->query($sql_fallback);
-        if ($resql) {
-            return 1;
-        }
-
-        $this->errors[] = "Error ".$this->db->lasterror();
-        dol_syslog(get_class($this)."::updateCommandeExtrafields ".$this->db->lasterror(), LOG_ERR);
-        return -1;
+        return 1;
     }
 
     // ========== MÉTHODES POUR LA GESTION DES MATIÈRES PREMIÈRES ==========
