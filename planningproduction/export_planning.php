@@ -1354,11 +1354,11 @@ if ($data === false && $type !== 'global') {
                     return;
                 }
 
-                var commande = (row.querySelector('.col-commande') ? row.querySelector('.col-commande').textContent : '').toLowerCase();
-                var ref      = (row.querySelector('.col-ref')      ? row.querySelector('.col-ref').textContent      : '').toLowerCase();
-                var produit  = (row.querySelector('.col-produit')  ? row.querySelector('.col-produit').textContent  : '').toLowerCase();
-                var matiere  = (row.querySelector('.col-matiere')  ? row.querySelector('.col-matiere').textContent  : '').toLowerCase();
-                var statutCell = row.querySelector('.col-statuts');
+                var commande = (row.cells[0] ? row.cells[0].textContent : '').toLowerCase();
+                var ref      = (row.cells[1] ? row.cells[1].textContent : '').toLowerCase();
+                var produit  = (row.cells[3] ? row.cells[3].textContent : '').toLowerCase();
+                var matiere  = (row.cells[4] ? row.cells[4].textContent : '').toLowerCase();
+                var statutCell = row.cells[7] || null;
 
                 var matchMP = true;
                 if (fStatutMP && statutCell) {
