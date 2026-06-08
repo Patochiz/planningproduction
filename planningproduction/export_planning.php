@@ -495,11 +495,80 @@ if ($data === false && $type !== 'global') {
         color: #2c3e50;
     }
     
+    /* Barre de filtres */
+    .filter-bar {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 200;
+        background: #fff;
+        border-bottom: 2px solid #dee2e6;
+        padding: 7px 16px;
+        box-shadow: 0 2px 6px rgba(0,0,0,.1);
+    }
+    .filter-bar-inner {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .filter-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #495057;
+        margin-right: 2px;
+    }
+    .filter-input {
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 13px;
+        width: 140px;
+    }
+    .filter-input:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 2px rgba(13,110,253,.15);
+    }
+    .filter-select {
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 4px 8px;
+        font-size: 13px;
+        background: #fff;
+        cursor: pointer;
+    }
+    .filter-select:focus {
+        outline: none;
+        border-color: #0d6efd;
+    }
+    .filter-clear-btn {
+        background: #6c757d;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 4px 10px;
+        cursor: pointer;
+        font-size: 13px;
+    }
+    .filter-clear-btn:hover { background: #5a6268; }
+    .filter-count {
+        font-size: 12px;
+        color: #6c757d;
+        font-style: italic;
+    }
+    /* Décaler le contenu sous la barre fixe */
+    body { padding-top: 56px; }
+    /* Lignes et séparateurs masqués par le filtre */
+    tr.filter-hidden { display: none; }
+    tr.group-empty { display: none; }
+    .week-section-empty { display: none; }
+
     /* Spécifique à l'impression */
     @media print {
         body {
             font-size: 9pt;
             line-height: 1.3;
+            padding-top: 0;
         }
         
         .export-header {
@@ -561,6 +630,7 @@ if ($data === false && $type !== 'global') {
         .col-actions { display: none !important; }
         .no-print { display: none !important; }
         .export-actions { display: none !important; }
+        .filter-bar { display: none !important; }
         .edit-modal { display: none !important; }
         .matiere-modal { display: none !important; }
 
@@ -811,6 +881,36 @@ if ($data === false && $type !== 'global') {
         <a href="planning.php" class="btn btn-back">✏️ Modifier</a>
     </div>
     
+    <!-- Barre de filtres (non imprimée) -->
+    <div class="filter-bar no-print" id="filterBar">
+        <div class="filter-bar-inner">
+            <input type="text" id="filterCommande" placeholder="Commande…"       class="filter-input" oninput="applyFilters()">
+            <input type="text" id="filterRef"      placeholder="Réf. chantier…"  class="filter-input" oninput="applyFilters()">
+            <input type="text" id="filterProduit"  placeholder="Produit…"        class="filter-input" oninput="applyFilters()">
+            <input type="text" id="filterMatiere"  placeholder="Matière…"        class="filter-input" oninput="applyFilters()">
+            <select id="filterStatutMP" class="filter-select" onchange="applyFilters()">
+                <option value="">MP – Tous</option>
+                <option value="mp-ok">MP Ok</option>
+                <option value="mp-waiting">MP en attente / autre</option>
+            </select>
+            <select id="filterStatutAR" class="filter-select" onchange="applyFilters()">
+                <option value="">AR – Tous</option>
+                <option value="ar-ok">AR Validé</option>
+                <option value="ar-waiting">AR en attente</option>
+            </select>
+            <select id="filterStatutProd" class="filter-select" onchange="applyFilters()">
+                <option value="">Prod – Tous</option>
+                <option value="À PRODUIRE">À produire</option>
+                <option value="EN COURS">En cours</option>
+                <option value="À PEINDRE">À peindre</option>
+                <option value="À TERMINER">À terminer</option>
+                <option value="BON POUR EXPÉDITION">Bon pour expédition</option>
+            </select>
+            <button class="filter-clear-btn" onclick="clearFilters()">✕ Effacer</button>
+            <span id="filterCount" class="filter-count"></span>
+        </div>
+    </div>
+
     <!-- Notification de sélection (cachée par défaut) -->
     <div class="selection-notification no-print" id="selectionNotification" style="display:none;">
         <strong>Sélection :</strong>
@@ -1227,6 +1327,100 @@ if ($data === false && $type !== 'global') {
 
         summary.textContent = checked.length + ' ligne' + (checked.length > 1 ? 's' : '') + ' — ' + parts.join(' | ');
         notif.style.display = 'block';
+    }
+
+    // === FILTRES TEXTUELS ===
+    function applyFilters() {
+        var fCommande   = document.getElementById('filterCommande').value.toLowerCase().trim();
+        var fRef        = document.getElementById('filterRef').value.toLowerCase().trim();
+        var fProduit    = document.getElementById('filterProduit').value.toLowerCase().trim();
+        var fMatiere    = document.getElementById('filterMatiere').value.toLowerCase().trim();
+        var fStatutMP   = document.getElementById('filterStatutMP').value;
+        var fStatutAR   = document.getElementById('filterStatutAR').value;
+        var fStatutProd = document.getElementById('filterStatutProd').value;
+
+        var visibleTotal = 0;
+
+        document.querySelectorAll('.export-table tbody').forEach(function(tbody) {
+            var groupSep = null;
+            var groupVisible = 0;
+
+            tbody.querySelectorAll('tr').forEach(function(row) {
+                if (row.querySelector('.group-separator')) {
+                    if (groupSep && groupVisible === 0) groupSep.classList.add('group-empty');
+                    groupSep = row;
+                    groupVisible = 0;
+                    groupSep.classList.remove('group-empty');
+                    return;
+                }
+
+                var commande = (row.cells[0] ? row.cells[0].textContent : '').toLowerCase();
+                var ref      = (row.cells[1] ? row.cells[1].textContent : '').toLowerCase();
+                var produit  = (row.cells[3] ? row.cells[3].textContent : '').toLowerCase();
+                var matiere  = (row.cells[4] ? row.cells[4].textContent : '').toLowerCase();
+                var statutCell = row.cells[7] || null;
+
+                var matchMP = true;
+                if (fStatutMP && statutCell) {
+                    var mpBadge = statutCell.querySelector('[class*="badge-mp"]');
+                    if (mpBadge) {
+                        matchMP = fStatutMP === 'mp-ok' ? mpBadge.classList.contains('badge-mp-ok') : mpBadge.classList.contains('badge-mp-waiting');
+                    } else {
+                        matchMP = false;
+                    }
+                }
+
+                var matchAR = true;
+                if (fStatutAR && statutCell) {
+                    var arBadge = statutCell.querySelector('[class*="badge-ar"]');
+                    if (arBadge) {
+                        matchAR = fStatutAR === 'ar-ok' ? arBadge.classList.contains('badge-ar-ok') : arBadge.classList.contains('badge-ar-waiting');
+                    } else {
+                        matchAR = false;
+                    }
+                }
+
+                var matchProd = true;
+                if (fStatutProd && statutCell) {
+                    var prodBadge = statutCell.querySelector('.badge-production');
+                    matchProd = prodBadge ? prodBadge.textContent.trim() === fStatutProd : false;
+                }
+
+                var match =
+                    (!fCommande || commande.indexOf(fCommande) !== -1) &&
+                    (!fRef      || ref.indexOf(fRef) !== -1)           &&
+                    (!fProduit  || produit.indexOf(fProduit) !== -1)   &&
+                    (!fMatiere  || matiere.indexOf(fMatiere) !== -1)   &&
+                    matchMP && matchAR && matchProd;
+
+                row.classList.toggle('filter-hidden', !match);
+                if (match) { groupVisible++; visibleTotal++; }
+            });
+
+            if (groupSep && groupVisible === 0) groupSep.classList.add('group-empty');
+        });
+
+        document.querySelectorAll('.week-title').forEach(function(weekTitle) {
+            var table = weekTitle.nextElementSibling;
+            if (!table) return;
+            var anyVisible = table.querySelector('tbody tr:not(.filter-hidden):not(.group-empty)');
+            weekTitle.classList.toggle('week-section-empty', !anyVisible);
+            table.classList.toggle('week-section-empty', !anyVisible);
+        });
+
+        var anyFilter = fCommande || fRef || fProduit || fMatiere || fStatutMP || fStatutAR || fStatutProd;
+        document.getElementById('filterCount').textContent =
+            anyFilter ? visibleTotal + ' ligne' + (visibleTotal > 1 ? 's' : '') + ' affichée' + (visibleTotal > 1 ? 's' : '') : '';
+    }
+
+    function clearFilters() {
+        ['filterCommande','filterRef','filterProduit','filterMatiere'].forEach(function(id) {
+            document.getElementById(id).value = '';
+        });
+        ['filterStatutMP','filterStatutAR','filterStatutProd'].forEach(function(id) {
+            document.getElementById(id).selectedIndex = 0;
+        });
+        applyFilters();
     }
     </script>
 
