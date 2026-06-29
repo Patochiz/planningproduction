@@ -210,7 +210,7 @@ class PlanningProduction extends CommonObject
         $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_ef ON cd.rowid = cd_ef.fk_object ";
 
         // Conditions de base
-        $sql .= "WHERE c.fk_statut = 1 "; // Commandes validées
+        $sql .= "WHERE c.fk_statut IN (1, 2) "; // Commandes validées ou en cours d'expédition
         $sql .= "AND p.finished = 1 "; // Produits manufacturés uniquement
         $sql .= "AND cd.fk_product != 299 "; // Exclure le produit Vernis
         $sql .= "AND c.entity IN (".getEntity('commande').") ";
@@ -322,7 +322,7 @@ class PlanningProduction extends CommonObject
         $sql_fallback .= "LEFT JOIN ".MAIN_DB_PREFIX."commande_extrafields c_ef ON c.rowid = c_ef.fk_object ";
         $sql_fallback .= "LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_ef ON cd.rowid = cd_ef.fk_object ";
 
-        $sql_fallback .= "WHERE c.fk_statut = 1 "; // Commandes validées
+        $sql_fallback .= "WHERE c.fk_statut IN (1, 2) "; // Commandes validées ou en cours d'expédition
         $sql_fallback .= "AND c.entity IN (".getEntity('commande').") ";
         // Exclure les lignes totalement expédiées (contrôle au niveau ligne)
         $sql_fallback .= "AND cd.qty > COALESCE((SELECT SUM(ed.qty) FROM ".MAIN_DB_PREFIX."expeditiondet ed ";
@@ -942,7 +942,7 @@ class PlanningProduction extends CommonObject
         $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."product p ON cd.fk_product = p.rowid ";
         $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_ef ON cd.rowid = cd_ef.fk_object ";
 
-        $sql .= "WHERE c.fk_statut = 1 "; // Commandes validées
+        $sql .= "WHERE c.fk_statut IN (1, 2) "; // Commandes validées ou en cours d'expédition
         $sql .= "AND p.finished = 1 "; // Produits manufacturés uniquement
         $sql .= "AND c.entity IN (".getEntity('commande').") ";
         // Exclure les lignes totalement expédiées (contrôle au niveau ligne)
