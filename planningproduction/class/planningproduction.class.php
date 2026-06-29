@@ -211,10 +211,13 @@ class PlanningProduction extends CommonObject
 
         // Conditions de base
         $sql .= "WHERE c.fk_statut = 1 "; // Commandes validées
-        $sql .= "AND c.facture = 0 "; // Non facturées (non expédiées)
         $sql .= "AND p.finished = 1 "; // Produits manufacturés uniquement
         $sql .= "AND cd.fk_product != 299 "; // Exclure le produit Vernis
-        $sql .= "AND c.entity IN (".getEntity('commande').")";
+        $sql .= "AND c.entity IN (".getEntity('commande').") ";
+        // Exclure les lignes totalement expédiées (contrôle au niveau ligne, pas commande)
+        $sql .= "AND cd.qty > COALESCE((SELECT SUM(ed.qty) FROM ".MAIN_DB_PREFIX."expeditiondet ed ";
+        $sql .= "INNER JOIN ".MAIN_DB_PREFIX."expedition e ON ed.fk_expedition = e.rowid ";
+        $sql .= "WHERE ed.fk_elementdet = cd.rowid AND e.fk_statut > 0), 0) ";
         
         // Filtrer selon le statut demandé
         switch ($statut_filter) {
@@ -320,8 +323,11 @@ class PlanningProduction extends CommonObject
         $sql_fallback .= "LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_ef ON cd.rowid = cd_ef.fk_object ";
 
         $sql_fallback .= "WHERE c.fk_statut = 1 "; // Commandes validées
-        $sql_fallback .= "AND c.facture = 0 "; // Non facturées
         $sql_fallback .= "AND c.entity IN (".getEntity('commande').") ";
+        // Exclure les lignes totalement expédiées (contrôle au niveau ligne)
+        $sql_fallback .= "AND cd.qty > COALESCE((SELECT SUM(ed.qty) FROM ".MAIN_DB_PREFIX."expeditiondet ed ";
+        $sql_fallback .= "INNER JOIN ".MAIN_DB_PREFIX."expedition e ON ed.fk_expedition = e.rowid ";
+        $sql_fallback .= "WHERE ed.fk_elementdet = cd.rowid AND e.fk_statut > 0), 0) ";
         // La commande n'a aucun produit manufacturé
         $sql_fallback .= "AND NOT EXISTS (";
         $sql_fallback .= "  SELECT 1 FROM ".MAIN_DB_PREFIX."commandedet cd2 ";
@@ -553,11 +559,14 @@ class PlanningProduction extends CommonObject
         $sql .= "AND pp.semaine < ".((int) ($start_week + $nb_weeks))." ";
         $sql .= "AND cd.fk_product != 299 "; // Exclure le produit Vernis
 
-        // MODIFICATION IMPORTANTE : Exclure les cartes avec statut "À TERMINER" ou "BON POUR EXPÉDITION"
-        // Ces cartes ne doivent apparaître que dans les onglets, pas dans le planning des semaines
+        // Exclure les cartes avec statut "À TERMINER" ou "BON POUR EXPÉDITION"
         $sql .= "AND (cd_ef.statut_prod IS NULL OR cd_ef.statut_prod = '' OR cd_ef.statut_prod NOT IN ('À PEINDRE', 'À TERMINER', 'BON POUR EXPÉDITION')) ";
-        
-        $sql .= "AND c.entity IN (".getEntity('commande').")";
+
+        $sql .= "AND c.entity IN (".getEntity('commande').") ";
+        // Exclure les lignes totalement expédiées (contrôle au niveau ligne)
+        $sql .= "AND cd.qty > COALESCE((SELECT SUM(ed.qty) FROM ".MAIN_DB_PREFIX."expeditiondet ed ";
+        $sql .= "INNER JOIN ".MAIN_DB_PREFIX."expedition e ON ed.fk_expedition = e.rowid ";
+        $sql .= "WHERE ed.fk_elementdet = cd.rowid AND e.fk_statut > 0), 0) ";
         
         $sql .= " ORDER BY pp.semaine ASC, pp.ordre_semaine ASC, pp.ordre_groupe ASC";
 
@@ -932,10 +941,13 @@ class PlanningProduction extends CommonObject
         $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_ef ON cd.rowid = cd_ef.fk_object ";
         
         $sql .= "WHERE c.fk_statut = 1 "; // Commandes validées
-        $sql .= "AND c.facture = 0 "; // Non facturées (non expédiées)
         $sql .= "AND p.finished = 1 "; // Produits manufacturés uniquement
         $sql .= "AND c.entity IN (".getEntity('commande').") ";
-        
+        // Exclure les lignes totalement expédiées (contrôle au niveau ligne)
+        $sql .= "AND cd.qty > COALESCE((SELECT SUM(ed.qty) FROM ".MAIN_DB_PREFIX."expeditiondet ed ";
+        $sql .= "INNER JOIN ".MAIN_DB_PREFIX."expedition e ON ed.fk_expedition = e.rowid ";
+        $sql .= "WHERE ed.fk_elementdet = cd.rowid AND e.fk_statut > 0), 0) ";
+
         // Inclure uniquement les statuts À PRODUIRE et EN COURS
         $sql .= "AND cd_ef.statut_prod IN ('À PRODUIRE', 'EN COURS') ";
         
