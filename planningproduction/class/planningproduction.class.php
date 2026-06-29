@@ -933,10 +933,7 @@ class PlanningProduction extends CommonObject
     {
         $total_qty = 0;
         
-        // Sommer les quantités restantes (commandée - expédiée) pour les lignes non totalement expédiées
-        $sql = "SELECT SUM(cd.qty - COALESCE((SELECT SUM(ed.qty) FROM ".MAIN_DB_PREFIX."expeditiondet ed ";
-        $sql .= "INNER JOIN ".MAIN_DB_PREFIX."expedition e ON ed.fk_expedition = e.rowid ";
-        $sql .= "WHERE ed.fk_elementdet = cd.rowid AND e.fk_statut > 0), 0)) as total_qty ";
+        $sql = "SELECT SUM(cd.qty) as total_qty ";
         $sql .= "FROM ".MAIN_DB_PREFIX."commande c ";
         $sql .= "INNER JOIN ".MAIN_DB_PREFIX."commandedet cd ON c.rowid = cd.fk_commande ";
         $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."product p ON cd.fk_product = p.rowid ";
