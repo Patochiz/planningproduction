@@ -25,14 +25,16 @@ body:has(.planning-container) .fiche {
 }
 
 /* Si le sélecteur :has() n'est pas supporté, utiliser une classe spécifique */
-.planning-page .fiche {
+body.planning-page .fiche,
+body#mainbody.planning-page .fiche {
     margin-left: 0 !important;
     padding-left: 10px !important;
     max-width: none !important;
     width: 100% !important;
 }
 
-.planning-page #id-container {
+body.planning-page #id-container,
+body#mainbody.planning-page #id-container {
     margin-left: 0 !important;
     padding-left: 0 !important;
     max-width: 100% !important;
@@ -40,29 +42,42 @@ body:has(.planning-container) .fiche {
 }
 
 /* MASQUER LE MENU GAUCHE UNIQUEMENT SUR LES PAGES DE PLANNING */
-.planning-page #leftmenu {
+body.planning-page #leftmenu,
+body.planning-page .side-nav,
+body.planning-page div.side-nav,
+body.planning-page .main-sidebar,
+body.planning-page #id-left,
+body#mainbody.planning-page .side-nav,
+body#mainbody.planning-page #id-left {
     display: none !important;
-}
-
-.planning-page .side-nav {
-    display: none !important;
-}
-
-.planning-page .main-sidebar {
-    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    overflow: hidden !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 /* AJUSTEMENTS POUR LA MISE EN PAGE DU PLANNING */
-.planning-page .navbar-static-top {
+body.planning-page .navbar-static-top {
     margin-left: 0 !important;
 }
 
-.planning-page .content-wrapper {
+body.planning-page .content-wrapper {
     margin-left: 0 !important;
     max-width: 100% !important;
 }
 
-.planning-page body.sidebar-collapse #id-container {
+body.planning-page #id-right {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+.planning-page body.sidebar-collapse #id-container,
+.planning-page #id-container,
+body.planning-page #id-container,
+body.planning-page.sidebar-collapse #id-container {
     margin-left: 0 !important;
 }
 
