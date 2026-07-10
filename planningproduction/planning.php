@@ -83,14 +83,12 @@ $card_width = getDolGlobalString('PLANNINGPRODUCTION_CARD_WIDTH', '260');
 // Calculer la largeur du panneau en fonction de la largeur des cartes
 // Formule : largeur_carte + marges (30px) + scrollbar (20px) = largeur_panneau
 $panel_width = intval($card_width) + 50; // 30px de marge + 20px pour scrollbar
-$panel_width_collapsed = 50; // Largeur réduite fixe
 
 // CSS avec variable personnalisée
 print '<style type="text/css">'."\n";
 print ':root {'."\n";
 print '  --planning-card-width: '.$card_width.'px;'."\n";
 print '  --planning-panel-width: '.$panel_width.'px;'."\n";
-print '  --planning-panel-collapsed-width: '.$panel_width_collapsed.'px;'."\n";
 print '}'."\n";
 
 // Styles pour le panneau des onglets
@@ -99,21 +97,11 @@ print '  width: var(--planning-panel-width) !important;'."\n";
 print '  min-width: var(--planning-panel-width) !important;'."\n";
 print '}'."\n";
 
-print '.tabs-column.collapsed {'."\n";
-print '  width: var(--planning-panel-collapsed-width) !important;'."\n";
-print '  min-width: var(--planning-panel-collapsed-width) !important;'."\n";
-print '}'."\n";
-
 // Responsive : sur mobile, toujours pleine largeur
 print '@media (max-width: 768px) {'."\n";
 print '  .tabs-column {'."\n";
 print '    width: 100% !important;'."\n";
 print '    min-width: unset !important;'."\n";
-print '  }'."\n";
-print '  .tabs-column.collapsed {'."\n";
-print '    width: 100% !important;'."\n";
-print '    min-width: unset !important;'."\n";
-print '    height: 60px;'."\n";
 print '  }'."\n";
 print '}'."\n";
 
@@ -165,52 +153,45 @@ if ($planned_cards === false) {
 
 ?>
 
-<!-- SIDEBAR GAUCHE AVEC CONTRÔLES -->
-<div class="planning-sidebar">
-    <div class="sidebar-header">
-        <h2 class="sidebar-title">📋 <?php echo $langs->trans('PlanningHybride'); ?></h2>
-        <p class="sidebar-subtitle"><?php echo $langs->trans('TimelineGroupement'); ?></p>
-    </div>
-    
-    <div class="sidebar-section">
-        <h3 class="sidebar-section-title">Actions globales</h3>
-        <div class="sidebar-buttons">
-            <button class="sidebar-btn btn-config" onclick="window.open('<?php echo dol_buildpath('/planningproduction/admin/setup.php', 1); ?>', '_blank')">⚙️ <?php echo $langs->trans('Configuration'); ?></button>
-            <button class="sidebar-btn btn-matieres" onclick="openMatieresModal()">🧱 <?php echo $langs->trans('MatieresPremieresTitle', 'Matières'); ?></button>
-            <button class="sidebar-btn btn-export" onclick="exportGlobal()">📊 <?php echo $langs->trans('ExportGlobal'); ?></button>
-            <button class="sidebar-btn btn-sync" onclick="synchroniser()">🔄 <?php echo $langs->trans('Synchroniser'); ?></button>
+<!-- BARRE SUPÉRIEURE AVEC FILTRES ET ACTIONS -->
+<div class="planning-topbar">
+    <div class="topbar-left">
+        <h2 class="topbar-title">📋 <?php echo $langs->trans('PlanningHybride'); ?></h2>
+        <div class="topbar-actions">
+            <button class="topbar-btn btn-config" onclick="window.open('<?php echo dol_buildpath('/planningproduction/admin/setup.php', 1); ?>', '_blank')">⚙️ <?php echo $langs->trans('Configuration'); ?></button>
+            <button class="topbar-btn btn-matieres" onclick="openMatieresModal()">🧱 <?php echo $langs->trans('MatieresPremieresTitle', 'Matières'); ?></button>
+            <button class="topbar-btn btn-export" onclick="exportGlobal()">📊 <?php echo $langs->trans('ExportGlobal'); ?></button>
+            <button class="topbar-btn btn-sync" onclick="synchroniser()">🔄 <?php echo $langs->trans('Synchroniser'); ?></button>
         </div>
     </div>
-    
-    <form method="GET" action="<?php echo $_SERVER['PHP_SELF']; ?>" class="sidebar-form">
+
+    <form method="GET" action="<?php echo $_SERVER['PHP_SELF']; ?>" class="topbar-form">
         <input type="hidden" name="token" value="<?php echo newToken(); ?>">
-        
-        <div class="sidebar-section">
-            <h3 class="sidebar-section-title">Période</h3>
-            
-            <div class="sidebar-field">
+
+        <div class="topbar-filters">
+            <div class="topbar-field">
                 <label><?php echo $langs->trans('Annee'); ?></label>
-                <select name="year" id="yearSelect" class="sidebar-select">
+                <select name="year" id="yearSelect" class="topbar-select">
                     <option value="<?php echo $year; ?>" selected><?php echo $year; ?></option>
                     <option value="<?php echo $year - 1; ?>"><?php echo $year - 1; ?></option>
                     <option value="<?php echo $year + 1; ?>"><?php echo $year + 1; ?></option>
                 </select>
             </div>
-            
-            <div class="sidebar-field">
+
+            <div class="topbar-field">
                 <label><?php echo $langs->trans('NombreSemaines'); ?></label>
-                <select name="week_count" id="weekCountSelect" class="sidebar-select">
+                <select name="week_count" id="weekCountSelect" class="topbar-select">
                     <option value="3" <?php echo ($week_count == 3) ? 'selected' : ''; ?>>3 semaines</option>
                     <option value="5" <?php echo ($week_count == 5) ? 'selected' : ''; ?>>5 semaines</option>
                     <option value="8" <?php echo ($week_count == 8) ? 'selected' : ''; ?>>8 semaines</option>
                 </select>
             </div>
-            
-            <div class="sidebar-field">
+
+            <div class="topbar-field">
                 <label><?php echo $langs->trans('SemaineDepart'); ?></label>
                 <div class="week-selector">
                     <button type="button" class="week-nav-btn" onclick="navigatePrevWeek()">◀</button>
-                    <select name="start_week" id="startWeekSelect" class="sidebar-select">
+                    <select name="start_week" id="startWeekSelect" class="topbar-select">
                         <?php
                         for ($w = 1; $w <= 52; $w++) {
                             $selected = ($w == $start_week) ? 'selected' : '';
@@ -222,26 +203,22 @@ if ($planned_cards === false) {
                     <button type="button" class="week-nav-btn" onclick="navigateNextWeek()">▶</button>
                 </div>
             </div>
-        </div>
-        
-        <div class="sidebar-section">
-            <h3 class="sidebar-section-title">Filtres</h3>
-            
-            <div class="sidebar-field">
+
+            <div class="topbar-field">
                 <label><?php echo $langs->trans('Client'); ?></label>
-                <select class="sidebar-select">
+                <select class="topbar-select">
                     <option><?php echo $langs->trans('TousLesClients'); ?></option>
                 </select>
             </div>
-            
-            <div class="sidebar-field">
+
+            <div class="topbar-field">
                 <label><?php echo $langs->trans('Recherche'); ?></label>
-                <input type="text" class="sidebar-input" placeholder="<?php echo $langs->trans('RechercheReference'); ?>">
+                <input type="text" class="topbar-input" placeholder="<?php echo $langs->trans('RechercheReference'); ?>">
             </div>
-        </div>
-        
-        <div class="sidebar-submit">
-            <button type="submit" class="sidebar-btn btn-primary btn-full">🔍 <?php echo $langs->trans('Filtrer'); ?> / <?php echo $langs->trans('Actualiser'); ?></button>
+
+            <div class="topbar-field topbar-submit">
+                <button type="submit" class="topbar-btn btn-primary">🔍 <?php echo $langs->trans('Filtrer'); ?></button>
+            </div>
         </div>
     </form>
 </div>
@@ -251,13 +228,12 @@ if ($planned_cards === false) {
     <div class="planning-container">
         
         <!-- COLONNE ONGLETS -->
-        <div class="tabs-column collapsed" id="tabsColumn" data-active-tab="unplanned">
-            <div class="tabs-header" onclick="toggleTabsPanel()">
+        <div class="tabs-column" id="tabsColumn" data-active-tab="unplanned">
+            <div class="tabs-header">
                 <div class="tabs-header-content">
                     <span>📋 Cartes par statut</span>
                     <span class="tab-total-count"><?php echo count($unplanned_cards) + count($cards_to_finish) + count($cards_to_ship); ?></span>
                 </div>
-                <button class="tabs-toggle" id="tabsToggle" title="Afficher le panneau">▶</button>
             </div>
             
             <div class="tabs-nav">
