@@ -70,11 +70,22 @@ $form = new Form($db);
 $title = $langs->trans('PlanningHybride');
 $help_url = '';
 
-// Header Dolibarr standard sans ressources externes
-llxHeader('', $title, $help_url);
+// Header Dolibarr avec classe planning-page sur le body
+llxHeader('', $title, $help_url, '', 0, 0, '', '', '', 'planning-page');
 
-// Ajouter une classe wrapper pour scoper les styles CSS au planning uniquement
-print '<script type="text/javascript">document.body.classList.add("planning-page");</script>'."\n";
+// Supprimer le side-nav du DOM pour récupérer toute la largeur
+print '<script type="text/javascript">'."\n";
+print '(function() {'."\n";
+print '  var sideNav = document.querySelector(".side-nav");'."\n";
+print '  if (sideNav) sideNav.remove();'."\n";
+print '  var idLeft = document.getElementById("id-left");'."\n";
+print '  if (idLeft) idLeft.remove();'."\n";
+print '  var idRight = document.getElementById("id-right");'."\n";
+print '  if (idRight) { idRight.style.width = "100%"; idRight.style.maxWidth = "100%"; }'."\n";
+print '  var idContainer = document.getElementById("id-container");'."\n";
+print '  if (idContainer) { idContainer.style.width = "100%"; idContainer.style.maxWidth = "100%"; idContainer.style.marginLeft = "0"; }'."\n";
+print '})();'."\n";
+print '</script>'."\n";
 
 // === INCLUSION DIRECTE DES RESSOURCES ===
 // Inclure les CSS avec variable de largeur des cartes
@@ -725,8 +736,6 @@ print '        if (typeof initializePlanning === "function") initializePlanning(
 print '    }'."\n";
 print '});'."\n";
 print '</script>'."\n";
-
-print '<script type="text/javascript">document.body.classList.remove("planning-page");</script>'."\n";
 
 llxFooter();
 ?>
