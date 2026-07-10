@@ -888,6 +888,7 @@ if ($data === false && $type !== 'global') {
             <input type="text" id="filterRef"      placeholder="Réf. chantier…"  class="filter-input" oninput="applyFilters()">
             <input type="text" id="filterProduit"  placeholder="Produit…"        class="filter-input" oninput="applyFilters()">
             <input type="text" id="filterMatiere"  placeholder="Matière…"        class="filter-input" oninput="applyFilters()">
+            <input type="text" id="filterLivraison" placeholder="Livraison…"      class="filter-input" oninput="applyFilters()">
             <select id="filterStatutMP" class="filter-select" onchange="applyFilters()">
                 <option value="">MP – Tous</option>
                 <option value="mp-ok">MP Ok</option>
@@ -1335,6 +1336,7 @@ if ($data === false && $type !== 'global') {
         var fRef        = document.getElementById('filterRef').value.toLowerCase().trim();
         var fProduit    = document.getElementById('filterProduit').value.toLowerCase().trim();
         var fMatiere    = document.getElementById('filterMatiere').value.toLowerCase().trim();
+        var fLivraison  = document.getElementById('filterLivraison').value.toLowerCase().trim();
         var fStatutMP   = document.getElementById('filterStatutMP').value;
         var fStatutAR   = document.getElementById('filterStatutAR').value;
         var fStatutProd = document.getElementById('filterStatutProd').value;
@@ -1358,6 +1360,7 @@ if ($data === false && $type !== 'global') {
                 var ref      = (row.cells[1] ? row.cells[1].textContent : '').toLowerCase();
                 var produit  = (row.cells[3] ? row.cells[3].textContent : '').toLowerCase();
                 var matiere  = (row.cells[4] ? row.cells[4].textContent : '').toLowerCase();
+                var livraison = (row.cells[6] ? row.cells[6].textContent : '').toLowerCase();
                 var statutCell = row.cells[7] || null;
 
                 var matchMP = true;
@@ -1391,6 +1394,7 @@ if ($data === false && $type !== 'global') {
                     (!fRef      || ref.indexOf(fRef) !== -1)           &&
                     (!fProduit  || produit.indexOf(fProduit) !== -1)   &&
                     (!fMatiere  || matiere.indexOf(fMatiere) !== -1)   &&
+                    (!fLivraison || livraison.indexOf(fLivraison) !== -1) &&
                     matchMP && matchAR && matchProd;
 
                 row.classList.toggle('filter-hidden', !match);
@@ -1408,13 +1412,13 @@ if ($data === false && $type !== 'global') {
             table.classList.toggle('week-section-empty', !anyVisible);
         });
 
-        var anyFilter = fCommande || fRef || fProduit || fMatiere || fStatutMP || fStatutAR || fStatutProd;
+        var anyFilter = fCommande || fRef || fProduit || fMatiere || fLivraison || fStatutMP || fStatutAR || fStatutProd;
         document.getElementById('filterCount').textContent =
             anyFilter ? visibleTotal + ' ligne' + (visibleTotal > 1 ? 's' : '') + ' affichée' + (visibleTotal > 1 ? 's' : '') : '';
     }
 
     function clearFilters() {
-        ['filterCommande','filterRef','filterProduit','filterMatiere'].forEach(function(id) {
+        ['filterCommande','filterRef','filterProduit','filterMatiere','filterLivraison'].forEach(function(id) {
             document.getElementById(id).value = '';
         });
         ['filterStatutMP','filterStatutAR','filterStatutProd'].forEach(function(id) {
