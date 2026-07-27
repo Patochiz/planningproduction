@@ -557,6 +557,7 @@ class PlanningProduction extends CommonObject
         $sql .= "WHERE pp.annee = ".((int) $year)." ";
         $sql .= "AND pp.semaine >= ".((int) $start_week)." ";
         $sql .= "AND pp.semaine < ".((int) ($start_week + $nb_weeks))." ";
+        $sql .= "AND c.fk_statut IN (1, 2) ";
         $sql .= "AND cd.fk_product != 299 "; // Exclure le produit Vernis
 
         // Exclure les cartes avec statut "À TERMINER" ou "BON POUR EXPÉDITION"
