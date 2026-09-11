@@ -915,6 +915,7 @@ class PlanningProduction extends CommonObject
         $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_ef ON cd.rowid = cd_ef.fk_object ";
 
         $sql .= "WHERE c.entity IN (".getEntity('commande').") ";
+        $sql .= "AND p.finished = 1 ";
         $sql .= "AND cd.fk_product != 299 ";
         // Lignes totalement expédiées : shipped >= ordered
         $sql .= "AND cd.qty <= COALESCE((SELECT SUM(ed.qty) FROM ".MAIN_DB_PREFIX."expeditiondet ed ";
