@@ -862,6 +862,131 @@ class PlanningProduction extends CommonObject
         return 1;
     }
 
+    /**
+     * Récupérer les lignes de commande livrées (historique)
+     *
+     * @param string $date_start Date de début (format Y-m-d), filtre sur la date d'expédition
+     * @param string $date_end Date de fin (format Y-m-d), filtre sur la date d'expédition
+     * @return array|false Tableau des lignes livrées ou false si erreur
+     */
+    public function getDeliveredCards($date_start = '', $date_end = '')
+    {
+        $cards = array();
+
+        $sql = "SELECT DISTINCT cd.rowid as commandedet_id, c.rowid as commande_id, c.ref as commande_ref, ";
+        $sql .= "c.fk_soc, s.nom as societe_nom, c.date_creation, ";
+        $sql .= "cd.description as produit_description, cd.qty, cd.product_type, ";
+        $sql .= "p.ref as produit_ref, p.label as produit_label, ";
+        $sql .= "u.short_label as unite, ";
+        $sql .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, c_ef.fp_transmise, ";
+        $sql .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
+        $sql .= "(SELECT cd_titre_ef.ref_chantier ";
+        $sql .= " FROM ".MAIN_DB_PREFIX."commandedet cd_titre ";
+        $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_titre_ef ON cd_titre.rowid = cd_titre_ef.fk_object ";
+        $sql .= " WHERE cd_titre.fk_commande = cd.fk_commande ";
+        $sql .= " AND cd_titre.fk_product = 361 ";
+        $sql .= " AND cd_titre.rang < cd.rang ";
+        $sql .= " ORDER BY cd_titre.rang DESC ";
+        $sql .= " LIMIT 1 ";
+        $sql .= ") as titre_ref_chantier, ";
+        $sql .= "(SELECT CASE WHEN cd_next.fk_product IN (299, 480) THEN 1 ELSE 0 END ";
+        $sql .= " FROM ".MAIN_DB_PREFIX."commandedet cd_next ";
+        $sql .= " WHERE cd_next.fk_commande = cd.fk_commande ";
+        $sql .= " AND cd_next.rang > cd.rang ";
+        $sql .= " ORDER BY cd_next.rang ASC ";
+        $sql .= " LIMIT 1 ";
+        $sql .= ") as has_vn, ";
+        // Date de la dernière expédition validée pour cette ligne
+        $sql .= "(SELECT MAX(e.date_delivery) FROM ".MAIN_DB_PREFIX."expeditiondet ed2 ";
+        $sql .= " INNER JOIN ".MAIN_DB_PREFIX."expedition e ON ed2.fk_expedition = e.rowid ";
+        $sql .= " WHERE ed2.fk_elementdet = cd.rowid AND e.fk_statut > 0";
+        $sql .= ") as date_expedition, ";
+        // Quantité totale expédiée
+        $sql .= "COALESCE((SELECT SUM(ed3.qty) FROM ".MAIN_DB_PREFIX."expeditiondet ed3 ";
+        $sql .= " INNER JOIN ".MAIN_DB_PREFIX."expedition e3 ON ed3.fk_expedition = e3.rowid ";
+        $sql .= " WHERE ed3.fk_elementdet = cd.rowid AND e3.fk_statut > 0), 0) as qty_shipped ";
+
+        $sql .= "FROM ".MAIN_DB_PREFIX."commande c ";
+        $sql .= "INNER JOIN ".MAIN_DB_PREFIX."commandedet cd ON c.rowid = cd.fk_commande ";
+        $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."societe s ON c.fk_soc = s.rowid ";
+        $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."product p ON cd.fk_product = p.rowid ";
+        $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."c_units u ON cd.fk_unit = u.rowid ";
+        $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."commande_extrafields c_ef ON c.rowid = c_ef.fk_object ";
+        $sql .= "LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_ef ON cd.rowid = cd_ef.fk_object ";
+
+        $sql .= "WHERE c.entity IN (".getEntity('commande').") ";
+        $sql .= "AND cd.fk_product != 299 ";
+        // Lignes totalement expédiées : shipped >= ordered
+        $sql .= "AND cd.qty <= COALESCE((SELECT SUM(ed.qty) FROM ".MAIN_DB_PREFIX."expeditiondet ed ";
+        $sql .= "INNER JOIN ".MAIN_DB_PREFIX."expedition e ON ed.fk_expedition = e.rowid ";
+        $sql .= "WHERE ed.fk_elementdet = cd.rowid AND e.fk_statut > 0), 0) ";
+        // Exclure les brouillons et annulées
+        $sql .= "AND c.fk_statut IN (1, 2, 3) ";
+
+        // Filtre par date d'expédition
+        if (!empty($date_start)) {
+            $sql .= "AND EXISTS (SELECT 1 FROM ".MAIN_DB_PREFIX."expeditiondet ed_f ";
+            $sql .= " INNER JOIN ".MAIN_DB_PREFIX."expedition e_f ON ed_f.fk_expedition = e_f.rowid ";
+            $sql .= " WHERE ed_f.fk_elementdet = cd.rowid AND e_f.fk_statut > 0 ";
+            $sql .= " AND e_f.date_delivery >= '".$this->db->escape($date_start)."') ";
+        }
+        if (!empty($date_end)) {
+            $sql .= "AND EXISTS (SELECT 1 FROM ".MAIN_DB_PREFIX."expeditiondet ed_f2 ";
+            $sql .= " INNER JOIN ".MAIN_DB_PREFIX."expedition e_f2 ON ed_f2.fk_expedition = e_f2.rowid ";
+            $sql .= " WHERE ed_f2.fk_elementdet = cd.rowid AND e_f2.fk_statut > 0 ";
+            $sql .= " AND e_f2.date_delivery <= '".$this->db->escape($date_end)." 23:59:59') ";
+        }
+
+        $sql .= " ORDER BY date_expedition DESC, c.ref DESC, cd.rang ASC";
+
+        dol_syslog(get_class($this)."::getDeliveredCards", LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            $num = $this->db->num_rows($resql);
+            $i = 0;
+            while ($i < $num) {
+                $obj = $this->db->fetch_object($resql);
+
+                $delivery_address = $this->getDeliveryAddress($obj->commande_id);
+
+                $card = array(
+                    'fk_commande' => $obj->commande_id,
+                    'fk_commandedet' => $obj->commandedet_id,
+                    'commande_ref' => $obj->commande_ref,
+                    'version' => $obj->version ?: 'V1',
+                    'client' => $obj->societe_nom,
+                    'fk_soc' => $obj->fk_soc,
+                    'ref_chantier' => $obj->titre_ref_chantier ?: '-',
+                    'delivery' => $delivery_address,
+                    'deadline' => $obj->delai_liv ?: '-',
+                    'produit' => $obj->produit_label ?: $obj->produit_description,
+                    'produit_ref' => $obj->produit_ref,
+                    'quantity' => $obj->qty,
+                    'unite' => $obj->unite ?: 'u',
+                    'matiere' => $obj->matiere ?: '-',
+                    'statut_mp' => $obj->statut_mp,
+                    'statut_ar' => $obj->statut_ar,
+                    'statut_prod' => $obj->statut_prod ?: '-',
+                    'postlaquage' => $obj->postlaquage,
+                    'fp_transmise' => $obj->fp_transmise,
+                    'has_vn' => !empty($obj->has_vn),
+                    'qty_shipped' => $obj->qty_shipped,
+                    'date_expedition' => $obj->date_expedition,
+                );
+
+                $cards[] = $card;
+                $i++;
+            }
+            $this->db->free($resql);
+        } else {
+            $this->errors[] = "Error ".$this->db->lasterror();
+            dol_syslog(get_class($this)."::getDeliveredCards ".$this->db->lasterror(), LOG_ERR);
+            return false;
+        }
+
+        return $cards;
+    }
+
     // ========== MÉTHODES POUR LA GESTION DES MATIÈRES PREMIÈRES ==========
 
     /**
