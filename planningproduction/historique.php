@@ -42,10 +42,16 @@ if (!$user->hasRight('planningproduction', 'planning', 'read')) {
 $date_start = GETPOST('date_start', 'alpha');
 $date_end = GETPOST('date_end', 'alpha');
 
-// Default: last 30 days
-if (empty($date_start) && empty($date_end)) {
-    $date_start = date('Y-m-d', strtotime('-30 days'));
+$show_all = GETPOST('show_all', 'int');
+
+// Default: last 90 days (unless "show all" is requested)
+if (empty($date_start) && empty($date_end) && empty($show_all)) {
+    $date_start = date('Y-m-d', strtotime('-90 days'));
     $date_end = date('Y-m-d');
+}
+if (!empty($show_all)) {
+    $date_start = '';
+    $date_end = '';
 }
 
 $object = new PlanningProduction($db);
@@ -265,6 +271,7 @@ if (!empty($date_start) || !empty($date_end)) {
             <span class="filter-label">au</span>
             <input type="date" id="filterDateEnd" class="filter-date" value="<?php echo htmlspecialchars($date_end); ?>">
             <button class="filter-apply-btn" onclick="applyDateFilter()">Appliquer</button>
+            <button class="filter-clear-btn" onclick="window.location.href='historique.php?show_all=1'">Tout afficher</button>
             <span style="color:#ccc;">|</span>
             <input type="text" id="filterCommande" placeholder="Commande&#8230;" class="filter-input" oninput="applyTextFilters()">
             <input type="text" id="filterRef" placeholder="R&#233;f. chantier&#8230;" class="filter-input" oninput="applyTextFilters()">

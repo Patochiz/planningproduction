@@ -897,7 +897,7 @@ class PlanningProduction extends CommonObject
         $sql .= " LIMIT 1 ";
         $sql .= ") as has_vn, ";
         // Date de la dernière expédition validée pour cette ligne
-        $sql .= "(SELECT MAX(e.date_delivery) FROM ".MAIN_DB_PREFIX."expeditiondet ed2 ";
+        $sql .= "(SELECT MAX(COALESCE(e.date_expedition, e.date_valid, e.date_creation)) FROM ".MAIN_DB_PREFIX."expeditiondet ed2 ";
         $sql .= " INNER JOIN ".MAIN_DB_PREFIX."expedition e ON ed2.fk_expedition = e.rowid ";
         $sql .= " WHERE ed2.fk_elementdet = cd.rowid AND e.fk_statut > 0";
         $sql .= ") as date_expedition, ";
@@ -923,18 +923,18 @@ class PlanningProduction extends CommonObject
         // Exclure les brouillons et annulées
         $sql .= "AND c.fk_statut IN (1, 2, 3) ";
 
-        // Filtre par date d'expédition
+        // Filtre par date d'expédition (date_expedition réelle, sinon date_valid, sinon date_creation)
         if (!empty($date_start)) {
             $sql .= "AND EXISTS (SELECT 1 FROM ".MAIN_DB_PREFIX."expeditiondet ed_f ";
             $sql .= " INNER JOIN ".MAIN_DB_PREFIX."expedition e_f ON ed_f.fk_expedition = e_f.rowid ";
             $sql .= " WHERE ed_f.fk_elementdet = cd.rowid AND e_f.fk_statut > 0 ";
-            $sql .= " AND e_f.date_delivery >= '".$this->db->escape($date_start)."') ";
+            $sql .= " AND COALESCE(e_f.date_expedition, e_f.date_valid, e_f.date_creation) >= '".$this->db->escape($date_start)."') ";
         }
         if (!empty($date_end)) {
             $sql .= "AND EXISTS (SELECT 1 FROM ".MAIN_DB_PREFIX."expeditiondet ed_f2 ";
             $sql .= " INNER JOIN ".MAIN_DB_PREFIX."expedition e_f2 ON ed_f2.fk_expedition = e_f2.rowid ";
             $sql .= " WHERE ed_f2.fk_elementdet = cd.rowid AND e_f2.fk_statut > 0 ";
-            $sql .= " AND e_f2.date_delivery <= '".$this->db->escape($date_end)." 23:59:59') ";
+            $sql .= " AND COALESCE(e_f2.date_expedition, e_f2.date_valid, e_f2.date_creation) <= '".$this->db->escape($date_end)." 23:59:59') ";
         }
 
         $sql .= " ORDER BY date_expedition DESC, c.ref DESC, cd.rang ASC";
