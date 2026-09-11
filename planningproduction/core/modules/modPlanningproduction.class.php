@@ -211,6 +211,21 @@ class modPlanningproduction extends DolibarrModules
             'target'=>'',
             'user'=>2, // 0=Menu for internal users, 1=external users, 2=both
         );
+        $this->menu[$r++] = array(
+            'fk_menu'=>'fk_mainmenu=planningproduction',
+            'type'=>'left',
+            'titre'=>'Historique livraisons',
+            'prefix' => img_picto('', 'fa-history', 'class="fa fa-history paddingright pictofixedwidth valignmiddle"'),
+            'mainmenu'=>'planningproduction',
+            'leftmenu'=>'historique',
+            'url'=>'/custom/planningproduction/historique.php',
+            'langs'=>'planningproduction@planningproduction',
+            'position'=>1000 + $r,
+            'enabled'=>'isModEnabled("planningproduction")',
+            'perms'=>'$user->hasRight("planningproduction", "planning", "read")',
+            'target'=>'',
+            'user'=>2,
+        );
         /* END MODULEBUILDER TOPMENU */
 
         // Exports profiles provided by this module
