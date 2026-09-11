@@ -160,7 +160,17 @@ if (!empty($date_start) || !empty($date_end)) {
     .badge-ar-waiting { background: #f8d7da; color: #e74c3c; }
     .badge-production { background: #e8f4fd; color: #3498db; }
     .badge-delivered { background: #d5f4e6; color: #27ae60; }
+    .badge-fp-transmise { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background-color: #27ae60; color: white; font-size: 13px; font-weight: bold; cursor: default; flex-shrink: 0; line-height: 1; vertical-align: middle; margin-left: 2px; }
+    .badge-fp-transmise.badge-fp-hidden { display: none; }
     .status-cell { font-size: 7pt; line-height: 1.2; }
+
+    /* Ligne jaune pour éléments à peindre */
+    .export-table tr.paint-required { background: #ffff00 !important; }
+    .export-table tr.paint-required:hover { background: #ffff66 !important; }
+
+    /* Bordures gauches selon statuts MP/AR */
+    .export-table tr.border-green td:first-child { border-left: 6px solid #27ae60; }
+    .export-table tr.border-red td:first-child { border-left: 6px solid #e74c3c; }
 
     .empty-message {
         text-align: center; padding: 30px; color: #95a5a6;
@@ -253,6 +263,8 @@ if (!empty($date_start) || !empty($date_end)) {
         .no-print { display: none !important; }
         .export-actions { display: none !important; }
         .filter-bar { display: none !important; }
+        .export-table tr.paint-required { background: #ffff00 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .export-table tr.paint-required td { background: inherit !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
     </style>
 </head>
@@ -320,7 +332,15 @@ if (!empty($date_start) || !empty($date_end)) {
         <tbody>
         <?php
         foreach ($data as $card) {
-            echo '<tr>';
+            // Ligne jaune si à peindre
+            $paint_class = (!empty($card['postlaquage']) && $card['postlaquage'] == 'oui') ? ' paint-required' : '';
+
+            // Bordure gauche selon statuts MP et AR
+            $mp_ok = (isset($card['statut_mp']) && strpos($card['statut_mp'], 'MP Ok') !== false);
+            $ar_ok = (isset($card['statut_ar']) && $card['statut_ar'] == 'AR VALIDÉ');
+            $border_class = ($mp_ok && $ar_ok) ? ' border-green' : ' border-red';
+
+            echo '<tr class="' . trim($paint_class . $border_class) . '">';
 
             // Commande
             $commande_cell = htmlspecialchars($card['client'] ?? '-');
@@ -389,13 +409,37 @@ if (!empty($date_start) || !empty($date_end)) {
             // Statuts
             echo '<td class="status-cell">';
             echo '<span class="status-badge badge-delivered">LIVR&#201;</span>';
+
+            // Statut MP
+            if (!empty($card['statut_mp'])) {
+                $mp_parts = explode(',', $card['statut_mp']);
+                $mp_text = trim($mp_parts[0]);
+                if (strpos($mp_text, 'MP Ok') !== false) {
+                    echo '<span class="status-badge badge-mp-ok">MP OK</span>';
+                } else {
+                    echo '<span class="status-badge badge-mp-waiting">' . htmlspecialchars($mp_text) . '</span>';
+                }
+            }
+
+            // Statut AR
+            if (!empty($card['statut_ar'])) {
+                if ($card['statut_ar'] == 'AR VALIDÉ') {
+                    echo '<span class="status-badge badge-ar-ok">AR OK</span>';
+                } else {
+                    echo '<span class="status-badge badge-ar-waiting">' . htmlspecialchars($card['statut_ar']) . '</span>';
+                }
+            }
+
+            // Statut production
             if (!empty($card['statut_prod']) && $card['statut_prod'] !== '-') {
                 echo '<span class="status-badge badge-production">' . htmlspecialchars($card['statut_prod']) . '</span>';
             }
+
             echo '</td>';
 
-            // Checkbox
-            echo '<td class="no-print"><input type="checkbox" class="row-checkbox" data-qty="' . floatval($card['quantity'] ?? 0) . '" data-unite="' . htmlspecialchars($card['unite'] ?? 'u', ENT_QUOTES) . '" onchange="updateSelectionNotification()"></td>';
+            // Checkbox + badge FP
+            $fp_hidden = !empty($card['fp_transmise']) && $card['fp_transmise'] != '0' ? '' : ' badge-fp-hidden';
+            echo '<td class="no-print"><input type="checkbox" class="row-checkbox" data-qty="' . floatval($card['quantity'] ?? 0) . '" data-unite="' . htmlspecialchars($card['unite'] ?? 'u', ENT_QUOTES) . '" onchange="updateSelectionNotification()"><span class="badge-fp-transmise' . $fp_hidden . '" title="FP Transmise">&#10003;</span></td>';
 
             echo '</tr>';
         }
