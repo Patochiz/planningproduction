@@ -1482,7 +1482,7 @@ function renderCardsTable($cards, $langs)
         $commande_cell .= '</small>';
         echo '<td>' . $commande_cell . '</td>';
 
-        // Référence commande
+        // Référence commande (extrafield de ligne)
         echo '<td>' . htmlspecialchars($card['ref_commande'] ?? '-') . '</td>';
 
         // Délai
@@ -1680,7 +1680,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 $commande_cell .= '</small>';
                 echo '<td>' . $commande_cell . '</td>';
 
-                // Référence commande
+                // Référence commande (extrafield de ligne)
                 echo '<td>' . htmlspecialchars($card['ref_commande'] ?? '-') . '</td>';
 
                 // Délai

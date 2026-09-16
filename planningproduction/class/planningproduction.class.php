@@ -181,7 +181,7 @@ class PlanningProduction extends CommonObject
         // Extrafields de commande
         $sql .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, c_ef.fp_transmise, ";
         // Extrafields de ligne
-        $sql .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
+        $sql .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, cd_ef.ref_commande, ";
         // Sous-requête pour récupérer le ref_chantier du service (ID=361) directement au-dessus
         $sql .= "(SELECT cd_titre_ef.ref_chantier ";
         $sql .= " FROM ".MAIN_DB_PREFIX."commandedet cd_titre ";
@@ -265,6 +265,7 @@ class PlanningProduction extends CommonObject
                     'client' => $obj->societe_nom,
                     'fk_soc' => $obj->fk_soc,
                     'ref_chantier' => $obj->titre_ref_chantier ?: '-',
+                    'ref_commande' => $obj->ref_commande ?: '-',
                     'delivery' => $delivery_address,
                     'deadline' => $obj->delai_liv ?: '-',
                     'produit' => $obj->produit_label ?: $obj->produit_description,
@@ -298,7 +299,7 @@ class PlanningProduction extends CommonObject
         $sql_fallback .= "p.ref as produit_ref, p.label as produit_label, ";
         $sql_fallback .= "u.short_label as unite, ";
         $sql_fallback .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, c_ef.fp_transmise, ";
-        $sql_fallback .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
+        $sql_fallback .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, cd_ef.ref_commande, ";
         $sql_fallback .= "(SELECT cd_titre_ef.ref_chantier ";
         $sql_fallback .= " FROM ".MAIN_DB_PREFIX."commandedet cd_titre ";
         $sql_fallback .= " LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_titre_ef ON cd_titre.rowid = cd_titre_ef.fk_object ";
@@ -381,6 +382,7 @@ class PlanningProduction extends CommonObject
                     'client' => $obj->societe_nom,
                     'fk_soc' => $obj->fk_soc,
                     'ref_chantier' => $obj->titre_ref_chantier ?: '-',
+                    'ref_commande' => $obj->ref_commande ?: '-',
                     'delivery' => $delivery_address,
                     'deadline' => $obj->delai_liv ?: '-',
                     'produit' => $obj->produit_label ?: $obj->produit_description,
@@ -525,7 +527,7 @@ class PlanningProduction extends CommonObject
         // Extrafields de commande
         $sql .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, c_ef.fp_transmise, ";
         // Extrafields de ligne
-        $sql .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
+        $sql .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, cd_ef.ref_commande, ";
         // Sous-requête pour récupérer le ref_chantier du service (ID=361) directement au-dessus
         $sql .= "(SELECT cd_titre_ef.ref_chantier ";
         $sql .= " FROM ".MAIN_DB_PREFIX."commandedet cd_titre ";
@@ -592,6 +594,7 @@ class PlanningProduction extends CommonObject
                     'version' => $obj->version ?: 'V1',
                     'client' => $obj->societe_nom,
                     'ref_chantier' => $obj->titre_ref_chantier ?: '-',
+                    'ref_commande' => $obj->ref_commande ?: '-',
                     'delivery' => $delivery_address,
                     'deadline' => $obj->delai_liv ?: '-',
                     'produit' => $obj->produit_label ?: $obj->produit_description,
@@ -879,7 +882,7 @@ class PlanningProduction extends CommonObject
         $sql .= "p.ref as produit_ref, p.label as produit_label, ";
         $sql .= "u.short_label as unite, ";
         $sql .= "c_ef.version, c_ef.delai_liv, c_ef.statut_ar, c_ef.fp_transmise, ";
-        $sql .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, ";
+        $sql .= "cd_ef.matiere, cd_ef.statut_mp, cd_ef.statut_prod, cd_ef.postlaquage, cd_ef.ref_commande, ";
         $sql .= "(SELECT cd_titre_ef.ref_chantier ";
         $sql .= " FROM ".MAIN_DB_PREFIX."commandedet cd_titre ";
         $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."commandedet_extrafields cd_titre_ef ON cd_titre.rowid = cd_titre_ef.fk_object ";
@@ -958,6 +961,7 @@ class PlanningProduction extends CommonObject
                     'client' => $obj->societe_nom,
                     'fk_soc' => $obj->fk_soc,
                     'ref_chantier' => $obj->titre_ref_chantier ?: '-',
+                    'ref_commande' => $obj->ref_commande ?: '-',
                     'delivery' => $delivery_address,
                     'deadline' => $obj->delai_liv ?: '-',
                     'produit' => $obj->produit_label ?: $obj->produit_description,
