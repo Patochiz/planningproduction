@@ -351,8 +351,8 @@ if (!empty($date_start) || !empty($date_end)) {
             $commande_cell .= '</small>';
             echo '<td>' . $commande_cell . '</td>';
 
-            // Ref chantier
-            echo '<td>' . htmlspecialchars($card['ref_chantier'] ?? '-') . '</td>';
+            // Ref commande
+            echo '<td>' . htmlspecialchars($card['ref_commande'] ?? '-') . '</td>';
 
             // Délai
             echo '<td>' . htmlspecialchars($card['deadline'] ?? '-') . '</td>';
