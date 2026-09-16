@@ -1482,8 +1482,8 @@ function renderCardsTable($cards, $langs)
         $commande_cell .= '</small>';
         echo '<td>' . $commande_cell . '</td>';
 
-        // Référence client
-        echo '<td>' . htmlspecialchars($card['ref_chantier'] ?? '-') . '</td>';
+        // Référence commande
+        echo '<td>' . htmlspecialchars($card['ref_commande'] ?? '-') . '</td>';
 
         // Délai
         echo '<td>' . htmlspecialchars($card['deadline'] ?? '-') . '</td>';
@@ -1562,7 +1562,7 @@ function renderCardsTable($cards, $langs)
         $btn_data .= ' data-client="' . htmlspecialchars($card['client'] ?? '', ENT_QUOTES) . '"';
         $btn_data .= ' data-commande="' . htmlspecialchars(($card['commande_ref'] ?? '') . (!empty($card['version']) ? ' ' . $card['version'] : ''), ENT_QUOTES) . '"';
         $btn_data .= ' data-commande-url="' . htmlspecialchars(DOL_URL_ROOT . '/commande/card.php?id=' . (int)($card['fk_commande'] ?? 0), ENT_QUOTES) . '"';
-        $btn_data .= ' data-ref="' . htmlspecialchars($card['ref_chantier'] ?? '', ENT_QUOTES) . '"';
+        $btn_data .= ' data-ref="' . htmlspecialchars($card['ref_commande'] ?? '', ENT_QUOTES) . '"';
         $btn_data .= ' data-produit="' . htmlspecialchars((!empty($card['produit_ref']) ? $card['produit_ref'] : ($card['produit'] ?? '')), ENT_QUOTES) . '"';
         $btn_data .= ' data-matiere="' . htmlspecialchars($card['matiere'] ?? '', ENT_QUOTES) . '"';
         $btn_data .= ' data-statut-mp="' . htmlspecialchars($card['statut_mp'] ?? '', ENT_QUOTES) . '"';
@@ -1680,8 +1680,8 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 $commande_cell .= '</small>';
                 echo '<td>' . $commande_cell . '</td>';
 
-                // Référence client
-                echo '<td>' . htmlspecialchars($card['ref_chantier'] ?? '-') . '</td>';
+                // Référence commande
+                echo '<td>' . htmlspecialchars($card['ref_commande'] ?? '-') . '</td>';
 
                 // Délai
                 echo '<td>' . htmlspecialchars($card['deadline'] ?? '-') . '</td>';
@@ -1760,7 +1760,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 $btn_data .= ' data-client="' . htmlspecialchars($card['client'] ?? '', ENT_QUOTES) . '"';
                 $btn_data .= ' data-commande="' . htmlspecialchars(($card['commande_ref'] ?? '') . (!empty($card['version']) ? ' ' . $card['version'] : ''), ENT_QUOTES) . '"';
                 $btn_data .= ' data-commande-url="' . htmlspecialchars(DOL_URL_ROOT . '/commande/card.php?id=' . (int)($card['fk_commande'] ?? 0), ENT_QUOTES) . '"';
-                $btn_data .= ' data-ref="' . htmlspecialchars($card['ref_chantier'] ?? '', ENT_QUOTES) . '"';
+                $btn_data .= ' data-ref="' . htmlspecialchars($card['ref_commande'] ?? '', ENT_QUOTES) . '"';
                 $btn_data .= ' data-produit="' . htmlspecialchars((!empty($card['produit_ref']) ? $card['produit_ref'] : ($card['produit'] ?? '')), ENT_QUOTES) . '"';
                 $btn_data .= ' data-matiere="' . htmlspecialchars($card['matiere'] ?? '', ENT_QUOTES) . '"';
                 $btn_data .= ' data-statut-mp="' . htmlspecialchars($card['statut_mp'] ?? '', ENT_QUOTES) . '"';
