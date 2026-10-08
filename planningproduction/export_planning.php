@@ -263,6 +263,27 @@ if ($data === false && $type !== 'global') {
         vertical-align: middle;
     }
 
+    /* Ordres de transformation (module DiamantUtils) liés à la ligne */
+    .planning-ot {
+        font-size: 8pt;
+        white-space: nowrap;
+    }
+    .planning-ot a {
+        color: inherit;
+        text-decoration: underline;
+    }
+    .planning-ot-status {
+        display: inline-block;
+        color: #fff;
+        font-size: 7.5pt;
+        padding: 0 4px;
+        border-radius: 3px;
+        vertical-align: middle;
+    }
+    .planning-ot-status-0 { background: #999; }
+    .planning-ot-status-1 { background: #bc9526; }
+    .planning-ot-status-2 { background: #55a580; }
+
     /* Tableau des éléments */
     .export-table {
         width: 100%;
@@ -1435,6 +1456,62 @@ if ($data === false && $type !== 'global') {
 <?php
 
 /**
+ * Ordres de transformation (module DiamantUtils) liés à une ligne de commande :
+ * lien vers chaque ordre avec son statut, après un retour à la ligne.
+ * Rien n'est affiché si le module n'est pas actif ou si l'utilisateur n'a pas le droit de lecture.
+ * Les ordres annulés sont ignorés. Tous les ordres sont chargés en une seule requête.
+ *
+ * @param	int		$fk_commandedet		Id de la ligne de commande
+ * @return	string						HTML à ajouter à la cellule Produit
+ */
+function renderTransformationOrders($fk_commandedet)
+{
+	global $db, $user, $langs;
+	static $ordersByLine = null;
+
+	if ($ordersByLine === null) {
+		$ordersByLine = array();
+		if (isModEnabled('diamantutils') && $user->hasRight('diamantutils', 'transformation', 'read')
+			&& dol_include_once('/diamantutils/class/transformation.class.php') && class_exists('Transformation')) {
+			$langs->load('diamantutils@diamantutils');
+			$sql = "SELECT rowid, ref, status, fk_commandedet FROM ".MAIN_DB_PREFIX."diamantutils_transfo";
+			$sql .= " WHERE fk_commandedet > 0 AND status <> ".Transformation::STATUS_CANCELED;
+			$sql .= " AND entity IN (".getEntity('diamantutils_transfo').")";
+			$sql .= " ORDER BY rowid";
+			$resql = $db->query($sql);
+			if ($resql) {
+				while ($obj = $db->fetch_object($resql)) {
+					$ordersByLine[(int) $obj->fk_commandedet][] = $obj;
+				}
+				$db->free($resql);
+			}
+		}
+	}
+
+	$fk_commandedet = (int) $fk_commandedet;
+	if ($fk_commandedet <= 0 || empty($ordersByLine[$fk_commandedet])) {
+		return '';
+	}
+
+	// Page autonome sans le CSS de Dolibarr : balisage simple, stylé par .planning-ot
+	$labels = array(
+		Transformation::STATUS_DRAFT => $langs->trans('Draft'),
+		Transformation::STATUS_VALIDATED => $langs->trans('Validated'),
+		Transformation::STATUS_CONSUMED => $langs->trans('DiamantutilsStatusConsumed'),
+	);
+	$out = '';
+	foreach ($ordersByLine[$fk_commandedet] as $obj) {
+		$url = dol_buildpath('/diamantutils/transformation_card.php', 1).'?id='.((int) $obj->rowid);
+		$status = (int) $obj->status;
+		$out .= '<br><span class="planning-ot">';
+		$out .= '<a href="'.dol_escape_htmltag($url).'" target="_blank">'.dol_escape_htmltag($obj->ref).'</a>';
+		$out .= ' <span class="planning-ot-status planning-ot-status-'.$status.'">'.dol_escape_htmltag(isset($labels[$status]) ? $labels[$status] : (string) $status).'</span>';
+		$out .= '</span>';
+	}
+	return $out;
+}
+
+/**
  * Render table of cards with new column order
  */
 function renderCardsTable($cards, $langs)
@@ -1501,6 +1578,7 @@ function renderCardsTable($cards, $langs)
         } else {
             $produit = '-';
         }
+        $produit .= renderTransformationOrders($card['fk_commandedet'] ?? 0);
         echo '<td>' . $produit . '</td>';
 
         // Matière (cliquable si un lien est configuré pour ce code MP)
@@ -1699,6 +1777,7 @@ function renderPlannedCardsByWeek($planned_cards, $langs)
                 } else {
                     $produit = '-';
                 }
+                $produit .= renderTransformationOrders($card['fk_commandedet'] ?? 0);
                 echo '<td>' . $produit . '</td>';
 
                 // Matière (cliquable si un lien est configuré pour ce code MP)
