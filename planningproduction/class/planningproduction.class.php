@@ -1004,19 +1004,25 @@ class PlanningProduction extends CommonObject
     {
         $matieres = array();
         
-        $sql = "SELECT rowid, code_mp, stock, cde_en_cours_date, tms, ordre, lien ";
-        $sql .= "FROM ".MAIN_DB_PREFIX."planningproduction_matieres ";
-        $sql .= "WHERE entity IN (".getEntity('planningproduction').') ';
+        $sql_from = "FROM ".MAIN_DB_PREFIX."planningproduction_matieres ";
+        $sql_from .= "WHERE entity IN (".getEntity('planningproduction').') ';
         if ($order_by_position) {
-            $sql .= "ORDER BY ordre ASC, code_mp ASC";
+            $sql_from .= "ORDER BY ordre ASC, code_mp ASC";
         } else {
-            $sql .= "ORDER BY code_mp ASC";
+            $sql_from .= "ORDER BY code_mp ASC";
         }
+        $sql = "SELECT rowid, code_mp, stock, cde_en_cours_date, tms, ordre, lien, airtable_filtre ".$sql_from;
         
         dol_syslog(get_class($this)."::getAllMatieres - SQL: ".$sql, LOG_DEBUG);
         dol_syslog(get_class($this)."::getAllMatieres - Entity: ".getEntity('planningproduction'), LOG_DEBUG);
         
         $resql = $this->db->query($sql);
+        if (!$resql) {
+            // Compatibilité : colonne airtable_filtre absente tant que sql/upgrade_add_airtable_filtre.sql n'a pas été exécuté
+            dol_syslog(get_class($this)."::getAllMatieres - Requête avec airtable_filtre en échec, nouvel essai sans la colonne", LOG_WARNING);
+            $sql = "SELECT rowid, code_mp, stock, cde_en_cours_date, tms, ordre, lien ".$sql_from;
+            $resql = $this->db->query($sql);
+        }
         if ($resql) {
             $num = $this->db->num_rows($resql);
             dol_syslog(get_class($this)."::getAllMatieres - Found ".$num." rows", LOG_DEBUG);
@@ -1034,6 +1040,7 @@ class PlanningProduction extends CommonObject
                     'cde_en_cours_date' => $cde_en_cours_date,
                     'ordre' => (int)$obj->ordre,
                     'lien' => $obj->lien,
+                    'airtable_filtre' => self::decodeAirtableFiltre(isset($obj->airtable_filtre) ? $obj->airtable_filtre : null),
                     'cde_en_cours' => 0, // Sera calculé séparément
                     'reste' => (float)$obj->stock - $cde_en_cours_date, // Calculé avec cde_en_cours_date
                     'date_maj' => $obj->tms
@@ -1052,6 +1059,84 @@ class PlanningProduction extends CommonObject
         
         dol_syslog(get_class($this)."::getAllMatieres - Returning ".count($matieres)." matières", LOG_DEBUG);
         return $matieres;
+    }
+
+    /**
+     * Décoder le filtre Airtable stocké en base (JSON)
+     *
+     * @param string|null $json Valeur de la colonne airtable_filtre
+     * @return array Filtre ['fldXXX' => ['selA', 'selB'], …], tableau vide si NULL ou invalide
+     */
+    public static function decodeAirtableFiltre($json)
+    {
+        if ($json === null || $json === '') {
+            return array();
+        }
+        $data = json_decode($json, true);
+        if (!is_array($data)) {
+            return array();
+        }
+        // Ne garder que les clés et valeurs bien formées (les IDs de choix inconnus sont détectés plus tard : invalid_filter)
+        $filtre = array();
+        foreach ($data as $field_id => $choice_ids) {
+            if (!is_string($field_id) || !preg_match('/^fld[A-Za-z0-9]{14}$/', $field_id) || !is_array($choice_ids)) {
+                continue;
+            }
+            $ids = array();
+            foreach ($choice_ids as $choice_id) {
+                if (is_string($choice_id) && preg_match('/^sel[A-Za-z0-9]{14}$/', $choice_id)) {
+                    $ids[] = $choice_id;
+                }
+            }
+            if (!empty($ids)) {
+                $filtre[$field_id] = array_values(array_unique($ids));
+            }
+        }
+        return $filtre;
+    }
+
+    /**
+     * Mettre à jour le filtre Airtable d'une matière première
+     *
+     * Le filtre est validé avant enregistrement :
+     * - clés limitées aux 4 champs du filtre (Fournisseur, Largeur, Couleur, Perforation)
+     * - valeurs au format d'ID de choix Airtable (sel + 14 caractères)
+     * Un filtre vide est enregistré en NULL. La « DATE DE MàJ » (tms) du stock n'est pas modifiée.
+     *
+     * @param int   $rowid  ID de la matière première
+     * @param array $filtre ['fldXXX' => ['selA', 'selB'], …]
+     * @return int 1 si OK, -1 si erreur
+     */
+    public function updateMatiereAirtableFiltre($rowid, array $filtre)
+    {
+        dol_include_once('/planningproduction/class/airtablestock.class.php');
+
+        $clean = AirtableStock::sanitizeFilter($filtre);
+        if ($clean === false) {
+            $this->errors[] = "Filtre Airtable invalide";
+            dol_syslog(get_class($this)."::updateMatiereAirtableFiltre filtre invalide pour rowid ".((int) $rowid), LOG_WARNING);
+            return -1;
+        }
+
+        $sql = "UPDATE ".MAIN_DB_PREFIX."planningproduction_matieres SET ";
+        if (empty($clean)) {
+            $sql .= "airtable_filtre = NULL, ";
+        } else {
+            $sql .= "airtable_filtre = '".$this->db->escape(json_encode($clean))."', ";
+        }
+        $sql .= "tms = tms ";
+        $sql .= "WHERE rowid = ".((int) $rowid);
+        $sql .= " AND entity IN (".getEntity('planningproduction').")";
+
+        dol_syslog(get_class($this)."::updateMatiereAirtableFiltre", LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        if ($resql) {
+            return 1;
+        } else {
+            $this->errors[] = "Error ".$this->db->lasterror();
+            dol_syslog(get_class($this)."::updateMatiereAirtableFiltre ".$this->db->lasterror(), LOG_ERR);
+            return -1;
+        }
     }
 
     /**
