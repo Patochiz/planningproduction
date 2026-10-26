@@ -35,6 +35,15 @@ function validateStrictCSRFToken() {
 }
 
 /**
+ * Vérifier le token CSRF contre le token de session Dolibarr (actions d'administration)
+ */
+function checkSessionCSRFToken() {
+    $token = GETPOST('token', 'alpha');
+    $session_token = isset($_SESSION['token']) ? (string) $_SESSION['token'] : '';
+    return ($token !== '' && $session_token !== '' && hash_equals($session_token, $token));
+}
+
+/**
  * Valider un code MP
  */
 function validateCodeMP($code_mp) {
@@ -73,8 +82,59 @@ try {
                     // Ajouter un flag de désynchronisation si les deux valeurs diffèrent
                     $matiere['is_desync'] = abs($matiere['cde_en_cours'] - $matiere['cde_en_cours_date']) > 0.01;
                 }
-                
+                unset($matiere);
+
+                // Comparaison avec Airtable (lecture seule) : une panne n'empêche jamais l'affichage
+                $airtable_info = array('nb_ecarts' => 0, 'fetched_at' => null, 'from_cache' => false, 'error' => null, 'configured' => false, 'tolerance' => 0.5);
+                try {
+                    dol_include_once('/planningproduction/class/airtablestock.class.php');
+                    $airtable = new AirtableStock($db);
+                    $totals = $airtable->getAirtableTotals($matieres, GETPOSTINT('force_airtable') === 1);
+                    $tolerance = AirtableStock::getTolerance();
+                    $info = $airtable->getLoadInfo();
+
+                    foreach ($matieres as &$matiere) {
+                        $t = isset($totals[(int) $matiere['rowid']]) ? $totals[(int) $matiere['rowid']] : array('status' => 'api_error', 'surface' => null, 'nb_bobines' => 0, 'last_modified' => null, 'message' => 'Non calculé');
+                        $matiere['airtable_status'] = $t['status'];
+                        $matiere['airtable_surface'] = $t['surface'];
+                        $matiere['airtable_nb_bobines'] = $t['nb_bobines'];
+                        $matiere['airtable_last_modified'] = $t['last_modified'];
+                        $matiere['airtable_message'] = $t['message'];
+                        if ($t['status'] === 'ok') {
+                            $matiere['airtable_ecart'] = round($matiere['stock'] - $t['surface'], 2);
+                            $matiere['is_airtable_diff'] = abs($matiere['airtable_ecart']) > $tolerance;
+                        } else {
+                            $matiere['airtable_ecart'] = null;
+                            $matiere['is_airtable_diff'] = false;
+                        }
+                        if ($matiere['is_airtable_diff']) {
+                            $airtable_info['nb_ecarts']++;
+                        }
+                    }
+                    unset($matiere);
+
+                    $airtable_info['configured'] = $airtable->isConfigured();
+                    $airtable_info['tolerance'] = $tolerance;
+                    $airtable_info['fetched_at'] = !empty($info['fetched_at']) ? date('c', $info['fetched_at']) : null;
+                    $airtable_info['from_cache'] = (bool) $info['from_cache'];
+                    $airtable_info['error'] = !empty($info['error']) ? $info['error'] : null;
+                } catch (Throwable $e) {
+                    dol_syslog("AJAX Matieres - Airtable : ".$e->getMessage(), LOG_ERR);
+                    $airtable_info['error'] = 'Erreur interne Airtable';
+                    foreach ($matieres as &$matiere) {
+                        $matiere['airtable_status'] = 'api_error';
+                        $matiere['airtable_surface'] = null;
+                        $matiere['airtable_nb_bobines'] = 0;
+                        $matiere['airtable_last_modified'] = null;
+                        $matiere['airtable_message'] = 'Erreur interne Airtable';
+                        $matiere['airtable_ecart'] = null;
+                        $matiere['is_airtable_diff'] = false;
+                    }
+                    unset($matiere);
+                }
+
                 $response['success'] = true;
+                $response['airtable'] = $airtable_info;
                 $response['data'] = $matieres;
                 $response['message'] = count($matieres) . ' matière(s) chargée(s)';
             } else {
@@ -193,6 +253,50 @@ try {
                 }
             } else {
                 throw new Exception('Erreur lors du calcul des commandes en cours');
+            }
+            break;
+
+        case 'preview_airtable_filtre':
+            // Aperçu « → n bobines, X m² » d'un filtre en cours de saisie (configuration)
+            if (empty($user->admin)) {
+                http_response_code(403);
+                throw new Exception('Réservé aux administrateurs');
+            }
+            if (!checkSessionCSRFToken()) {
+                http_response_code(403);
+                throw new Exception('Token CSRF invalide ou manquant');
+            }
+            dol_include_once('/planningproduction/class/airtablestock.class.php');
+            $filtre = json_decode(GETPOST('filtre', 'none'), true);
+            $filtre = AirtableStock::sanitizeFilter(is_array($filtre) ? $filtre : array());
+            if ($filtre === false) {
+                throw new Exception('Filtre invalide');
+            }
+            $airtable = new AirtableStock($db);
+            $result = $airtable->computeForFilter($filtre, false);
+            $response['success'] = true;
+            $response['data'] = $result;
+            break;
+
+        case 'parse_airtable_link':
+            // Pré-remplissage : décoder le lien d'interface (rien n'est enregistré)
+            if (empty($user->admin)) {
+                http_response_code(403);
+                throw new Exception('Réservé aux administrateurs');
+            }
+            if (!checkSessionCSRFToken()) {
+                http_response_code(403);
+                throw new Exception('Token CSRF invalide ou manquant');
+            }
+            dol_include_once('/planningproduction/class/airtablestock.class.php');
+            $airtable = new AirtableStock($db);
+            $filtre = $airtable->parseInterfaceLink(GETPOST('lien', 'none'));
+            if ($filtre === false) {
+                $response['success'] = false;
+                $response['message'] = 'Lien non décodable, sélection manuelle';
+            } else {
+                $response['success'] = true;
+                $response['data'] = array('filtre' => $filtre);
             }
             break;
 
