@@ -436,6 +436,12 @@ function initializeMatieresOrder(force = false) {
         return;
     }
     
+    // Pas de poignée affichée (droits insuffisants ou matière en cours d'édition) : pas de drag & drop
+    if (!table.querySelector('.drag-handle')) {
+        console.log('Aucune poignée de déplacement, drag & drop non initialisé');
+        return;
+    }
+
     // Vérifier qu'il y a des lignes draggables
     const draggableRows = table.querySelectorAll('tr[data-matiere-id]');
     if (draggableRows.length < 2) {
