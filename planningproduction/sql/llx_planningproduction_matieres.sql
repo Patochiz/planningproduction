@@ -19,6 +19,7 @@ CREATE TABLE llx_planningproduction_matieres (
     stock decimal(24,8) DEFAULT 0,
     cde_en_cours_date decimal(24,8) DEFAULT 0,
     lien varchar(500) DEFAULT NULL,
+    airtable_filtre text DEFAULT NULL,
     ordre integer DEFAULT 0,
     date_creation datetime NOT NULL,
     tms timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
