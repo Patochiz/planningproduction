@@ -6,11 +6,14 @@
 class MatieresOrderManager {
     constructor(tableSelector = '#matieres-sortable', options = {}) {
         this.tableSelector = tableSelector;
+        // URL par défaut calculée à partir de la balise <script> (respecte DOL_URL_ROOT et le dossier custom réel)
+        const tag = document.querySelector('script[src*="matieres_order.js"]');
+        const tokenInput = document.querySelector('input[name="token"]');
         this.options = {
             handleSelector: '.drag-handle',
             rowSelector: 'tr[data-matiere-id]',
-            saveUrl: '/custom/planningproduction/ajax_matieres_order.php',
-            token: typeof newToken === 'function' ? newToken() : document.querySelector('input[name="token"]')?.value || '',
+            saveUrl: tag ? tag.src.replace(/js\/matieres_order\.js.*$/, 'ajax_matieres_order.php') : 'ajax_matieres_order.php',
+            token: tokenInput ? tokenInput.value : '',
             ...options
         };
         
@@ -285,12 +288,27 @@ class MatieresOrderManager {
                 }
             });
             
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            // Lire la réponse en texte pour pouvoir afficher le message du serveur même en cas d'erreur HTTP
+            const text = await response.text();
+            let result = null;
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                result = null;
             }
-            
-            const result = await response.json();
-            
+
+            if (!response.ok) {
+                let detail = (result && result.error) ? result.error : (response.statusText || 'Erreur serveur');
+                if (response.status === 404) {
+                    detail = 'Script introuvable (' + this.options.saveUrl + ')';
+                }
+                throw new Error(`HTTP ${response.status} : ${detail}`);
+            }
+
+            if (!result) {
+                throw new Error('Réponse invalide du serveur');
+            }
+
             if (result.error) {
                 throw new Error(result.error);
             }
@@ -311,7 +329,7 @@ class MatieresOrderManager {
             console.error('Erreur lors de la sauvegarde de l\'ordre:', error);
             this.showMessage('Erreur lors de la sauvegarde: ' + error.message, 'error');
             
-            // Optionnel: restaurer l'ordre original en cas d'erreur
+            // Remettre les lignes dans leur ordre initial
             this.restoreOriginalOrder();
         } finally {
             this.showLoadingIndicator(false);
@@ -322,11 +340,10 @@ class MatieresOrderManager {
         const table = document.querySelector(this.tableSelector);
         if (!table) return;
         
-        const tbody = table.querySelector('tbody');
-        if (!tbody) return;
-        
         // Récupérer toutes les lignes et les trier selon l'ordre original
-        const rows = Array.from(tbody.querySelectorAll(this.options.rowSelector));
+        const rows = Array.from(table.querySelectorAll(this.options.rowSelector));
+        if (rows.length === 0) return;
+        const tbody = rows[0].parentNode;
         
         // Trier selon l'ordre original
         rows.sort((a, b) => {
@@ -383,9 +400,10 @@ class MatieresOrderManager {
         
         document.body.appendChild(messageDiv);
         
+        // Les erreurs restent affichées plus longtemps pour pouvoir être lues
         setTimeout(() => {
             messageDiv.remove();
-        }, 4000);
+        }, type === 'error' ? 8000 : 4000);
     }
 }
 
@@ -398,10 +416,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Fonction d'initialisation globale pour éviter les doublons
-function initializeMatieresOrder() {
-    // Nettoyer toute instance existante
+function initializeMatieresOrder(force = false) {
+    // Une instance existe déjà (créée par la page avec ses options) : ne pas en créer une seconde,
+    // sinon chaque glisser-déposer serait enregistré deux fois
+    let previousOptions = {};
     if (window.matieresOrderManager) {
+        if (!force) {
+            return;
+        }
         console.log('Nettoyage de l\'instance existante');
+        previousOptions = { saveUrl: window.matieresOrderManager.options.saveUrl, token: window.matieresOrderManager.options.token };
         window.matieresOrderManager = null;
     }
     
@@ -420,7 +444,7 @@ function initializeMatieresOrder() {
     }
     
     try {
-        window.matieresOrderManager = new MatieresOrderManager('#matieres-sortable');
+        window.matieresOrderManager = new MatieresOrderManager('#matieres-sortable', previousOptions);
         console.log('Drag & drop des matières premières initialisé avec succès !', draggableRows.length, 'matières');
     } catch (error) {
         console.error('Erreur lors de l\'initialisation du drag & drop:', error);
@@ -431,6 +455,6 @@ function initializeMatieresOrder() {
 window.reinitializeMatieresOrder = function() {
     console.log('Réinitialisation demandée...');
     setTimeout(() => {
-        initializeMatieresOrder();
+        initializeMatieresOrder(true);
     }, 50);
 };

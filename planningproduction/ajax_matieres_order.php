@@ -40,9 +40,10 @@ if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQU
     exit;
 }
 
-// Vérification du token CSRF
+// Vérification du token CSRF (comparé au token de session Dolibarr ; checkToken() n'existe pas dans Dolibarr)
 $token = GETPOST('token', 'alpha');
-if (!$token || !checkToken($token)) {
+$session_token = isset($_SESSION['token']) ? (string) $_SESSION['token'] : '';
+if (!$token || $session_token === '' || !hash_equals($session_token, $token)) {
     http_response_code(403);
     echo json_encode(array('error' => 'Token CSRF invalide'));
     exit;
@@ -152,6 +153,7 @@ try {
 } catch (Exception $e) {
     http_response_code(400);
     $response = array(
+        'success' => false,
         'error' => $e->getMessage()
     );
     

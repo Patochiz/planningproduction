@@ -335,22 +335,17 @@ if (count($matieres) == 0) {
 }
 print '</table>';
 
-// Script de réinitialisation du drag & drop après rechargement
+// Initialisation du drag & drop : URL et token générés côté PHP (respecte DOL_URL_ROOT et le dossier custom réel)
 if ($user->hasRight('planningproduction', 'planning', 'write') && count($matieres) > 1) {
     print '<script type="text/javascript">'."\n";
-    print '// Réinitialiser le drag & drop après rechargement de la page'."\n";
-    print 'document.addEventListener("DOMContentLoaded", function() {'."\n";
-    print '    // Attendre que le DOM soit complètement chargé'."\n";
-    print '    setTimeout(function() {'."\n";
-    print '        if (typeof MatieresOrderManager !== "undefined") {'."\n";
-    print '            console.log("Réinitialisation du drag & drop...");'."\n";
-    print '            window.matieresOrderManager = new MatieresOrderManager("#matieres-sortable");'."\n";
-    print '            console.log("Drag & drop des matières premières initialisé !");'."\n";
-    print '        } else {'."\n";
-    print '            console.warn("MatieresOrderManager non disponible - Vérifiez le chargement de matieres_order.js");'."\n";
-    print '        }'."\n";
-    print '    }, 200); // Attendre 200ms pour être sûr que le JS est chargé'."\n";
-    print '});'."\n";
+    print 'if (typeof MatieresOrderManager !== "undefined") {'."\n";
+    print 'window.matieresOrderManager = new MatieresOrderManager("#matieres-sortable", {'
+        .'saveUrl: '.json_encode(dol_buildpath('/planningproduction/ajax_matieres_order.php', 1)).', '
+        .'token: '.json_encode(newToken())
+        .'});'."\n";
+    print '} else {'."\n";
+    print '    console.warn("MatieresOrderManager non disponible - Vérifiez le chargement de matieres_order.js");'."\n";
+    print '}'."\n";
     print '</script>'."\n";
 }
 

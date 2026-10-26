@@ -1298,9 +1298,10 @@ class PlanningProduction extends CommonObject
     {
         global $user;
         
+        // tms = tms : changer l'ordre ne doit pas modifier la date de mise à jour du stock (colonne ON UPDATE CURRENT_TIMESTAMP)
         $sql = "UPDATE ".MAIN_DB_PREFIX."planningproduction_matieres SET ";
         $sql .= "ordre = ".((int) $ordre).", ";
-        $sql .= "fk_user_modif = ".((int) $user->id)." ";
+        $sql .= "tms = tms ";
         $sql .= "WHERE rowid = ".((int) $rowid);
         
         dol_syslog(get_class($this)."::updateMatiereOrdre", LOG_DEBUG);
@@ -1335,9 +1336,10 @@ class PlanningProduction extends CommonObject
         $ordre = 1;
         
         foreach ($ordered_ids as $rowid) {
+            // tms = tms : réordonner ne doit pas modifier la « DATE DE MàJ » du stock
             $sql = "UPDATE ".MAIN_DB_PREFIX."planningproduction_matieres SET ";
             $sql .= "ordre = ".((int) $ordre).", ";
-            $sql .= "fk_user_modif = ".((int) $user->id)." ";
+            $sql .= "tms = tms ";
             $sql .= "WHERE rowid = ".((int) $rowid);
             
             $resql = $this->db->query($sql);
