@@ -315,6 +315,12 @@ class modPlanningproduction extends DolibarrModules
 
         $sql = array();
 
+        // Migration : colonne airtable_filtre (erreur ignorée si la colonne existe déjà)
+        $sql[] = array(
+            'sql' => "ALTER TABLE ".MAIN_DB_PREFIX."planningproduction_matieres ADD COLUMN airtable_filtre text DEFAULT NULL",
+            'ignoreerror' => 1
+        );
+
         // Document templates
         $moduledir = dol_buildpath('/planningproduction', 0);
         $myTmpObjects = array();

@@ -267,10 +267,15 @@ Le tableau affiche pour chaque matière :
 |---------|-------------|
 | **CODE MP** | Code unique de la matière (lien cliquable si URL configurée) |
 | **STOCK** | Stock physique actuel (modifiable) |
+| **AIRTABLE** | Surface restante totale des bobines Airtable correspondant au filtre de la matière (lecture seule), avec en dessous le nombre de bobines (`n bob.`). En cas d'écart avec le Stock, une ligne `Δ +12,50` (Stock - Airtable) s'affiche en rouge foncé. L'info-bulle indique la date de dernière modification Airtable. `—` grisé : filtre non configuré, Airtable non configuré ou injoignable (voir l'info-bulle). `⚠ filtre` orange : un choix du filtre a été supprimé dans Airtable |
 | **CDE EN COURS** | Quantité calculée automatiquement depuis les commandes en cours |
 | **CDE EN COURS à date** | Valeur de snapshot (modifiable manuellement) |
 | **RESTE** | Disponible = Stock - CDE EN COURS à date |
-| **DATE DE MàJ** | Date de dernière modification |
+| **DATE DE MàJ** | Date de dernière modification du stock (non modifiée par un réordonnancement ou un changement de filtre Airtable) |
+
+Au-dessus du tableau, un résumé indique « ⚠️ N matière(s) en écart avec Airtable » ou « ✔ Stocks cohérents avec Airtable », avec l'heure de lecture des données (« cache » si elles viennent du cache, conservé 5 minutes par défaut). Le bouton **🔄 Relire Airtable** force une nouvelle lecture.
+
+Les données Airtable ne servent qu'à **comparer** : rien n'est jamais écrit, ni dans Airtable ni dans Dolibarr. Une panne d'Airtable n'empêche pas l'affichage du tableau.
 
 ### 7.3. Alertes couleur
 
@@ -278,6 +283,9 @@ Le tableau affiche pour chaque matière :
 |---------|---------------|
 | **Rouge** | Alerte stock : le reste est inférieur ou égal à 0 (stock insuffisant) |
 | **Orange** | Désynchronisation : la valeur "CDE EN COURS" calculée diffère de "CDE EN COURS à date" |
+| **Bordure gauche violette** (et cellule AIRTABLE violet clair) | Écart entre le Stock Dolibarr et la surface restante Airtable, au-delà de la tolérance (0,5 par défaut). Cas typique : la bobine a été mesurée et mise à jour dans Airtable, mais le Stock n'a pas été saisi. **Mettre à jour le Stock puis cliquer MàJ.** La bordure disparaît dès que le bon stock est saisi |
+
+Les alertes se cumulent : une ligne peut être à la fois rouge (ou orange) et bordée de violet.
 
 ### 7.4. Mettre à jour le stock
 
@@ -370,7 +378,53 @@ Cliquer sur le bouton **Supprimer** de la ligne concernée. Une confirmation est
 
 #### Réordonner les matières premières
 
-Glisser les matières à l'aide de l'icone de poignée pour modifier l'ordre d'affichage. L'ordre est sauvegardé automatiquement.
+Glisser les matières à l'aide de l'icone de poignée pour modifier l'ordre d'affichage. L'ordre est sauvegardé automatiquement et se retrouve dans la modale Matières et dans l'export. Réordonner ne modifie pas la date de mise à jour du stock. En cas d'erreur, le message du serveur s'affiche et l'ordre initial est rétabli.
+
+### 9.3. Synchronisation Airtable (lecture seule)
+
+La colonne **AIRTABLE** du tableau des matières compare le Stock Dolibarr à la surface restante des bobines de la table **Bobines** (base « Stock Bobine »). Le module ne fait que **lire** Airtable.
+
+#### Créer le token Airtable
+
+1. Sur airtable.com, ouvrir **Builder Hub > Personal access tokens > Create token**.
+2. Droits (*scopes*) : `data.records:read` et `schema.bases:read` uniquement.
+3. Accès : limiter à la base **Stock Bobine**.
+4. Copier le token (il commence par `pat…`).
+
+#### Paramètres
+
+Dans la section **Synchronisation Airtable (lecture seule)** de la page de configuration :
+
+| Paramètre | Description | Valeur par défaut |
+|-----------|-------------|-------------------|
+| Token Airtable | Coller le token puis enregistrer. Il est chiffré et n'est jamais réaffiché. Laisser le champ vide conserve le token existant ; cocher **Effacer le token** pour le supprimer | vide |
+| ID de la base | Base « Stock Bobine » | `appLzWKIGDJrIoIBU` |
+| ID de la table | Table « Bobines » | `tbll9m2YfOdwOCxxa` |
+| Écart toléré | Écart (même unité que le stock) en dessous duquel aucun signalement n'est fait | 0,5 |
+| Durée du cache | Durée de conservation des données lues, en secondes | 300 |
+
+Le bouton **Tester la connexion** lit le schéma et les bobines, puis affiche le nombre de bobines lues et le nombre de matières dont le filtre est renseigné.
+
+#### Régler le filtre Airtable de chaque matière
+
+Chaque matière possède un **filtre Airtable** composé de 4 listes : **Fournisseur, Largeur, Couleur, Perforation** (choix lus dans Airtable).
+
+- Plusieurs choix dans une liste = **OU** ; entre les listes = **ET** ; liste vide = indifférent.
+- Une matière **sans filtre** n'est jamais comparée (affichage `—`).
+- Le filtre fait foi : il ne faut **jamais** le déduire du nom du code MP. Exemple : pour « 11%1,5mm TATA », le fournisseur Airtable est **TPS** (filtre TPS / 400 / BLANC / 11%1,5mm).
+
+Pour régler le filtre :
+
+1. Cliquer sur **Modifier** sur la ligne de la matière (ou utiliser le formulaire d'ajout).
+2. Cliquer sur **Pré-remplir depuis le lien** : le lien de la page d'interface Airtable est décodé et les choix correspondants sont cochés (rien n'est enregistré).
+3. Vérifier les listes. L'aperçu « → n bobines, X m² » se met à jour à chaque modification : comparer avec la page récap Airtable.
+4. Cliquer sur **Sauver**.
+
+Pour les matières existantes, le bouton **Pré-remplir tous les filtres vides depuis les liens** propose un filtre pour chaque matière sans filtre (code MP, filtre proposé, nombre de bobines, surface). Décocher les propositions incorrectes puis cliquer sur **Enregistrer les filtres cochés**.
+
+La colonne **Filtre Airtable** de la liste affiche le résumé du filtre (ex. `TPS · 400 · BLANC · 11%1,5mm`), « — » sans filtre, et une alerte **⚠ filtre invalide** si un choix a été supprimé dans Airtable : modifier alors le filtre.
+
+Si le token n'est pas configuré ou si Airtable ne répond pas, les listes sont désactivées et le filtre déjà enregistré est conservé.
 
 ---
 
@@ -408,6 +462,10 @@ Ce message apparaît si les tables n'ont pas été créées lors de l'activation
 - Vérifiez que vous disposez des droits en **écriture** sur le module.
 - Vérifiez que JavaScript est activé dans votre navigateur.
 - Essayez de rafraîchir la page (`F5`).
+
+### La colonne AIRTABLE affiche « — » ou « ⚠ filtre »
+
+Survoler la cellule pour lire le message : filtre non configuré (voir §9.3), Airtable non configuré (token absent), token invalide ou Airtable injoignable, ou choix supprimé dans Airtable (modifier le filtre de la matière).
 
 ### Les valeurs "CDE EN COURS" et "CDE EN COURS à date" sont différentes
 

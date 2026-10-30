@@ -1723,3 +1723,56 @@ body.planning-page.sidebar-collapse #id-container {
         justify-content: space-between;
     }
 }
+
+/* ========== Matières premières : comparaison avec Airtable (lecture seule) ========== */
+/* Écart Stock Dolibarr / Airtable : bordure gauche violette (se cumule avec les alertes rouge et orange) */
+.matieres-table tr.row-airtable-diff > td:first-child {
+    border-left: 4px solid #8e44ad !important;
+}
+
+.matieres-table tr.row-airtable-diff td.airtable-cell {
+    background-color: #f3e5f5 !important;
+}
+
+.airtable-cell {
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.airtable-cell .airtable-nb {
+    color: #888;
+    font-weight: normal;
+}
+
+.airtable-cell .airtable-delta {
+    color: #6a1b1b;
+    font-weight: bold;
+}
+
+.airtable-summary {
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+
+.airtable-summary-diff { color: #8e44ad; font-weight: bold; }
+.airtable-summary-ok { color: #27ae60; font-weight: bold; }
+.airtable-summary-error { color: #c0392b; font-weight: bold; }
+
+.btn-airtable-reload {
+    background: #f3e5f5;
+    color: #6c3483;
+    border: 1px solid #b39ddb;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    margin-left: 8px;
+}
+
+.btn-airtable-reload:hover { background: #e1bee7; }
+
+@media print {
+    .btn-airtable-reload { display: none !important; }
+    .matieres-table tr.row-airtable-diff > td:first-child { border-left: 4px solid #8e44ad !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .matieres-table tr.row-airtable-diff td.airtable-cell { background-color: #f3e5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

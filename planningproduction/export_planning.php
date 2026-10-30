@@ -665,6 +665,9 @@ if ($data === false && $type !== 'global') {
         .matieres-table .btn-update-cde { display: none; }
         .row-stock-alert { background-color: #ffebee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .row-desync { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .matieres-table tr.row-airtable-diff > td:first-child { border-left: 4px solid #8e44ad !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .matieres-table tr.row-airtable-diff td.airtable-cell { background-color: #f3e5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .btn-airtable-reload { display: none !important; }
         .export-table tr.paint-required { background: #ffff00 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .export-table tr.paint-required td { background: inherit !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         #matieresInlineSection .loading-spinner { display: none; }
@@ -887,6 +890,18 @@ if ($data === false && $type !== 'global') {
     .reste-alert { color: #c62828 !important; font-weight: bold !important; }
     .row-desync { background-color: #fff3e0 !important; }
     .row-desync td { background-color: inherit !important; }
+    /* Écart Stock Dolibarr / Airtable : bordure gauche violette (cumulable avec rouge / orange) */
+    .matieres-table tr.row-airtable-diff > td:first-child { border-left: 4px solid #8e44ad !important; }
+    .matieres-table tr.row-airtable-diff td.airtable-cell { background-color: #f3e5f5 !important; }
+    .airtable-cell { white-space: nowrap; line-height: 1.2; }
+    .airtable-cell .airtable-nb { color: #888; font-weight: normal; }
+    .airtable-cell .airtable-delta { color: #6a1b1b; font-weight: bold; }
+    .airtable-summary { margin-bottom: 8px; font-size: 11px; }
+    .airtable-summary-diff { color: #8e44ad; font-weight: bold; }
+    .airtable-summary-ok { color: #27ae60; font-weight: bold; }
+    .airtable-summary-error { color: #c0392b; font-weight: bold; }
+    .btn-airtable-reload { background: #f3e5f5; color: #6c3483; border: 1px solid #b39ddb; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; margin-left: 8px; }
+    .btn-airtable-reload:hover { background: #e1bee7; }
 
     .matiere-message { padding: 8px; border-radius: 6px; margin-bottom: 10px; font-size: 11px; }
     .matiere-message.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }

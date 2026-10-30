@@ -10,10 +10,12 @@
  * - Mise en évidence des stocks insuffisants
  * - Alerte visuelle quand CDE EN COURS ≠ CDE EN COURS à date (désynchronisation)
  * - Bouton MàJ pour synchroniser cde_en_cours_date avec cde_en_cours calculé
+ * - Colonne AIRTABLE : surface restante lue dans Airtable (lecture seule) et signalement des écarts avec le Stock
  */
 
 // Variables globales
 let matieresData = [];
+let matieresAirtableInfo = null;
 let isMatieresModalOpen = false;
 
 // URL de base pour les appels AJAX (calculée à partir du script src)
@@ -71,9 +73,12 @@ function handleMatieresModalEscape(e) {
 
 /**
  * Charger les données des matières premières
+ *
+ * @param {boolean} force true pour relire Airtable sans passer par le cache
  */
-function loadMatieresData() {
-    console.log('Chargement des données matières premières...');
+function loadMatieresData(force) {
+    const forceAirtable = (force === true);
+    console.log('Chargement des données matières premières...' + (forceAirtable ? ' (relecture Airtable)' : ''));
 
     const container = document.getElementById('matieresTableContainer') || document.getElementById('matieresInlineContainer');
     if (!container) return;
@@ -92,7 +97,7 @@ function loadMatieresData() {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `action=get_matieres&token=${window.DOLIBARR_PLANNING_CONFIG.current_token}`
+        body: `action=get_matieres&token=${window.DOLIBARR_PLANNING_CONFIG.current_token}` + (forceAirtable ? '&force_airtable=1' : '')
     })
     .then(response => {
         if (!response.ok) {
@@ -113,6 +118,7 @@ function loadMatieresData() {
 
         if (data.success) {
             matieresData = data.data || [];
+            matieresAirtableInfo = data.airtable || null;
             renderMatieresTable();
         } else {
             showMatieresError(data.message || 'Erreur lors du chargement des données');
@@ -150,11 +156,13 @@ function renderMatieresTable() {
     }
     
     let html = `
+        <div class="airtable-summary">${renderAirtableSummaryInner()}</div>
         <table class="matieres-table">
             <thead>
                 <tr>
                     <th>CODE MP</th>
                     <th>STOCK</th>
+                    <th>AIRTABLE</th>
                     <th>CDE EN COURS</th>
                     <th style="background: #f39c12; color: white;">CDE EN COURS à date</th>
                     <th>RESTE</th>
@@ -178,6 +186,9 @@ function renderMatieresTable() {
         if (isStockAlert) {
             rowClasses.push('row-stock-alert');
         }
+        if (matiere.is_airtable_diff) {
+            rowClasses.push('row-airtable-diff');
+        }
 
         // Style inline en complément des classes CSS
         const rowStyle = isStockAlert ? 'background-color: #ffebee;' : (isDesync ? 'background-color: #fff3e0;' : '');
@@ -200,6 +211,7 @@ function renderMatieresTable() {
                            onchange="updateStock(${matiere.rowid}, this.value)"
                            onblur="updateStock(${matiere.rowid}, this.value)">
                 </td>
+                ${renderAirtableCell(matiere)}
                 <td class="numeric-cell" style="${cdeStyle}" data-field="cde_en_cours">${formatNumber(matiere.cde_en_cours)}</td>
                 <td class="numeric-cell">
                     <input type="number"
@@ -235,8 +247,10 @@ function renderMatieresTable() {
                 <li><strong>CDE EN COURS</strong> : Somme des quantités des cartes ayant ce code MP (calculé en temps réel, hors À TERMINER/BON POUR EXPÉDITION)</li>
                 <li style="color: #f39c12;"><strong>CDE EN COURS à date</strong> : Valeur figée des commandes en cours (éditable manuellement)</li>
                 <li><strong>RESTE</strong> : Stock - CDE EN COURS à date</li>
+                <li><strong>AIRTABLE</strong> : Surface restante totale des bobines Airtable correspondant au filtre de la matière (lecture seule), nombre de bobines et écart Δ = Stock - Airtable</li>
                 <li style="color: #e74c3c;"><strong>Ligne rouge clair</strong> : Stock insuffisant (reste ≤ 0)</li>
                 <li style="color: #e67e22;"><strong>Ligne orange</strong> : Désynchronisation (CDE EN COURS ≠ CDE EN COURS à date) - Cliquez sur "MàJ" pour synchroniser</li>
+                <li style="color: #8e44ad;"><strong>Bordure gauche violette</strong> : Écart Stock Dolibarr / Airtable : mettre à jour le Stock puis cliquer MàJ</li>
             </ul>
             <p style="margin-top: 10px;"><em><strong>Note importante :</strong> Le bouton "MàJ" copie la valeur de "CDE EN COURS" (calculée) vers "CDE EN COURS à date" pour les synchroniser.</em></p>
         </div>
@@ -270,6 +284,8 @@ function updateStock(rowid, newStock) {
     if (matiere) {
         matiere.stock = stock;
         updateRowReste(rowid);
+        // Recalcul local de l'écart Airtable : la bordure violette disparaît dès la saisie du bon stock
+        updateRowAirtable(rowid);
     }
     
     // Envoi de la mise à jour au serveur
@@ -568,6 +584,135 @@ function showMatieresMessage(message, type = 'info') {
 }
 
 /**
+ * Formater une date ISO en JJ/MM/AAAA HH:MM
+ */
+function formatAirtableDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const pad = n => String(n).padStart(2, '0');
+    return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/**
+ * Tolérance d'écart Stock / Airtable (renvoyée par le serveur)
+ */
+function getAirtableTolerance() {
+    const tol = matieresAirtableInfo ? parseFloat(matieresAirtableInfo.tolerance) : NaN;
+    return isNaN(tol) ? 0.5 : tol;
+}
+
+/**
+ * Cellule AIRTABLE d'une matière (HTML complet du <td>)
+ */
+function renderAirtableCell(matiere) {
+    const status = matiere.airtable_status || 'api_error';
+    const message = matiere.airtable_message || '';
+
+    if (status === 'ok') {
+        const lastMod = formatAirtableDate(matiere.airtable_last_modified);
+        let title = lastMod ? `Dernière modif Airtable : ${lastMod}` : 'Aucune bobine correspondante';
+        if (message) title += ` (${message})`;
+        let inner = `<div>${formatNumber(matiere.airtable_surface)}</div>`;
+        inner += `<small class="airtable-nb">${parseInt(matiere.airtable_nb_bobines, 10) || 0} bob.</small>`;
+        if (matiere.is_airtable_diff) {
+            const ecart = parseFloat(matiere.airtable_ecart) || 0;
+            inner += `<div class="airtable-delta">Δ ${ecart > 0 ? '+' : ''}${formatNumber(ecart)}</div>`;
+        }
+        return `<td class="numeric-cell airtable-cell" data-field="airtable" title="${escapeHtml(title)}">${inner}</td>`;
+    }
+    if (status === 'no_filter') {
+        return `<td class="numeric-cell airtable-cell" data-field="airtable" title="Filtre Airtable non configuré"><span style="color: #aaa;">—</span></td>`;
+    }
+    if (status === 'invalid_filter') {
+        return `<td class="numeric-cell airtable-cell" data-field="airtable" title="${escapeHtml(message)}"><span style="color: #e67e22; font-weight: bold;">⚠ filtre</span></td>`;
+    }
+    // api_error / not_configured
+    return `<td class="numeric-cell airtable-cell" data-field="airtable" title="${escapeHtml(message)}"><span style="color: #aaa;">—</span></td>`;
+}
+
+/**
+ * Contenu du résumé Airtable affiché au-dessus du tableau
+ */
+function renderAirtableSummaryInner() {
+    const info = matieresAirtableInfo;
+    if (!info) return '';
+
+    const button = `<button type="button" class="btn-airtable-reload" onclick="loadMatieresData(true)" title="Relire Airtable sans passer par le cache">🔄 Relire Airtable</button>`;
+
+    if (!info.configured) {
+        return `<span class="airtable-summary-text" style="color: #888;">Airtable non configuré</span>`;
+    }
+
+    // Matières sans filtre Airtable : jamais comparées
+    const nbSansFiltre = matieresData.filter(m => m.airtable_status === 'no_filter').length;
+    if (matieresData.length > 0 && nbSansFiltre === matieresData.length) {
+        return `<span class="airtable-summary-text airtable-summary-error">⚠️ Aucune matière comparée : filtre Airtable non configuré (Configuration du module → Modifier une matière, ou « Pré-remplir tous les filtres vides depuis les liens »)</span>`;
+    }
+
+    let text;
+    let cls;
+    if (!info.fetched_at && info.error) {
+        text = `⚠️ Airtable indisponible : ${escapeHtml(info.error)}`;
+        cls = 'airtable-summary-error';
+    } else {
+        const nb = matieresData.filter(m => m.is_airtable_diff).length;
+        if (nb > 0) {
+            text = `⚠️ ${nb} matière(s) en écart avec Airtable`;
+            cls = 'airtable-summary-diff';
+        } else {
+            text = '✔ Stocks cohérents avec Airtable';
+            cls = 'airtable-summary-ok';
+        }
+        if (info.fetched_at) {
+            const d = new Date(info.fetched_at);
+            if (!isNaN(d.getTime())) {
+                const pad = n => String(n).padStart(2, '0');
+                text += ` <small>(lu à ${pad(d.getHours())}:${pad(d.getMinutes())}${info.from_cache ? ' – cache' : ''})</small>`;
+            }
+        }
+        if (info.error) {
+            text += ` <small style="color: #c0392b;">${escapeHtml(info.error)}</small>`;
+        }
+        if (nbSansFiltre > 0) {
+            text += ` <small style="color: #888;">(${nbSansFiltre} matière(s) sans filtre, non comparée(s))</small>`;
+        }
+    }
+    return `<span class="airtable-summary-text ${cls}">${text}</span> ${button}`;
+}
+
+/**
+ * Recalculer et réafficher l'écart Airtable d'une ligne (après modification du stock)
+ */
+function updateRowAirtable(rowid) {
+    const matiere = matieresData.find(m => m.rowid == rowid);
+    if (!matiere) return;
+
+    if (matiere.airtable_status === 'ok') {
+        const surface = parseFloat(matiere.airtable_surface) || 0;
+        matiere.airtable_ecart = Math.round((parseFloat(matiere.stock) - surface) * 100) / 100;
+        matiere.is_airtable_diff = Math.abs(matiere.airtable_ecart) > getAirtableTolerance();
+    } else {
+        matiere.airtable_ecart = null;
+        matiere.is_airtable_diff = false;
+    }
+
+    // Mettre à jour toutes les occurrences (modal et/ou tableau inline)
+    document.querySelectorAll(`tr[data-rowid="${rowid}"]`).forEach(row => {
+        row.classList.toggle('row-airtable-diff', !!matiere.is_airtable_diff);
+        const cell = row.querySelector('td[data-field="airtable"]');
+        if (cell) {
+            cell.outerHTML = renderAirtableCell(matiere);
+        }
+    });
+
+    // Mettre à jour le résumé (nombre d'écarts)
+    document.querySelectorAll('.airtable-summary').forEach(el => {
+        el.innerHTML = renderAirtableSummaryInner();
+    });
+}
+
+/**
  * Utilitaires
  */
 
@@ -579,7 +724,7 @@ function escapeHtml(text) {
         '"': '&quot;',
         "'": '&#039;'
     };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    return String(text === null || text === undefined ? '' : text).replace(/[&<>"']/g, m => map[m]);
 }
 
 function formatNumber(value) {
