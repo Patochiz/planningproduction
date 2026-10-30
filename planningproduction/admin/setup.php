@@ -162,6 +162,119 @@ if ($action == 'test_airtable') {
     }
 }
 
+// ========== ACTIONS SUR LES MATIÈRES PREMIÈRES ==========
+// Traitées avant tout affichage : la redirection après enregistrement (header Location) échouait
+// une fois l'en-tête de page envoyé, et la page s'arrêtait avant le tableau
+$planning = new PlanningProduction($db);
+$airtable = new AirtableStock($db);
+if (in_array($action, array('add_matiere', 'delete_matiere', 'update_matiere', 'prefill_all_confirm'))) {
+    $matieres = $planning->getAllMatieres(true);
+    if ($matieres === false) {
+        $matieres = array();
+    }
+}
+
+// Traitement des actions sur les matières premières
+if ($action == 'add_matiere' && $user->hasRight('planningproduction', 'planning', 'write')) {
+    $new_code_mp = GETPOST('new_code_mp', 'alphanohtml');
+    $new_stock = GETPOST('new_stock', 'alphanohtml');
+    $new_lien = GETPOST('new_lien', 'alphanohtml');
+
+    // Debug des valeurs reçues
+    dol_syslog("add_matiere - new_code_mp: '".$new_code_mp."', new_stock: '".$new_stock."'", LOG_DEBUG);
+
+    if (!empty($new_code_mp) && $new_stock !== '' && is_numeric($new_stock)) {
+        $result = $planning->createMatiere($new_code_mp, (float)$new_stock, $new_lien);
+        if ($result > 0) {
+            // Filtre Airtable (seulement si les listes étaient actives dans le formulaire)
+            if (GETPOST('atfnew_present', 'int')) {
+                if ($planning->updateMatiereAirtableFiltre($result, planningproductionGetPostedAirtableFilter('atfnew_')) < 0) {
+                    setEventMessages($langs->trans('AirtableFilterSaveError'), null, 'warnings');
+                }
+            }
+            setEventMessages("Matière première ajoutée avec succès", null, 'mesgs');
+            header("Location: ".$_SERVER['PHP_SELF']);
+            exit;
+        } else {
+            setEventMessages("Erreur lors de l'ajout (code déjà existant ?)", null, 'errors');
+        }
+    } else {
+        setEventMessages("Code MP ou stock invalide. Code MP: '".$new_code_mp."', Stock: '".$new_stock."'", null, 'errors');
+    }
+}
+
+if ($action == 'delete_matiere' && $user->hasRight('planningproduction', 'planning', 'write')) {
+    $rowid = GETPOST('rowid', 'int');
+    if ($rowid > 0) {
+        $result = $planning->deleteMatiere($rowid);
+        if ($result > 0) {
+            setEventMessages("Matière première supprimée avec succès", null, 'mesgs');
+            header("Location: ".$_SERVER['PHP_SELF']);
+            exit;
+        } else {
+            setEventMessages("Erreur lors de la suppression", null, 'errors');
+        }
+    } else {
+        setEventMessages("ID invalide", null, 'errors');
+    }
+}
+
+if ($action == 'update_matiere' && $user->hasRight('planningproduction', 'planning', 'write')) {
+    $rowid = GETPOST('rowid', 'int');
+    $code_mp = GETPOST('code_mp', 'alphanohtml');
+    $stock = GETPOST('stock', 'alphanohtml');
+    $lien = GETPOST('lien', 'alphanohtml');
+
+    // Debug des valeurs reçues
+    dol_syslog("update_matiere - rowid: '".$rowid."', code_mp: '".$code_mp."', stock: '".$stock."'", LOG_DEBUG);
+
+    if ($rowid > 0 && !empty($code_mp) && $stock !== '' && is_numeric($stock)) {
+        $result = $planning->updateMatiere($rowid, $code_mp, (float)$stock, $lien);
+        if ($result > 0) {
+            // Filtre Airtable : si les listes étaient désactivées (token absent, Airtable injoignable), le filtre enregistré est conservé
+            if (GETPOST('atfedit_present', 'int')) {
+                if ($planning->updateMatiereAirtableFiltre($rowid, planningproductionGetPostedAirtableFilter('atfedit_')) < 0) {
+                    setEventMessages($langs->trans('AirtableFilterSaveError'), null, 'warnings');
+                }
+            }
+            setEventMessages("Matière première mise à jour avec succès", null, 'mesgs');
+            header("Location: ".$_SERVER['PHP_SELF']);
+            exit;
+        } else {
+            setEventMessages("Erreur lors de la mise à jour (code déjà existant ?)", null, 'errors');
+        }
+    } else {
+        $debug_msg = "Paramètres invalides - ";
+        $debug_msg .= "rowid: '".$rowid."' (".(($rowid > 0) ? 'OK' : 'KO')."), ";
+        $debug_msg .= "code_mp: '".$code_mp."' (".(!empty($code_mp) ? 'OK' : 'KO')."), ";
+        $debug_msg .= "stock: '".$stock."' (".(($stock !== '' && is_numeric($stock)) ? 'OK' : 'KO').")";
+        setEventMessages($debug_msg, null, 'errors');
+    }
+}
+
+// Pré-remplissage en masse : enregistrement après validation par l'admin
+if ($action == 'prefill_all_confirm' && $user->hasRight('planningproduction', 'planning', 'write')) {
+    $selected_rowids = GETPOST('prefill_rowid', 'array');
+    $nb_saved = 0;
+    foreach ($matieres as $m) {
+        if (!in_array((string) $m['rowid'], array_map('strval', (array) $selected_rowids), true)) {
+            continue;
+        }
+        // Ne jamais écraser un filtre déjà renseigné
+        if (!empty($m['airtable_filtre']) || empty($m['lien'])) {
+            continue;
+        }
+        $proposed = $airtable->parseInterfaceLink($m['lien']);
+        if ($proposed !== false && $planning->updateMatiereAirtableFiltre($m['rowid'], $proposed) > 0) {
+            $nb_saved++;
+        }
+    }
+    setEventMessages($langs->trans('AirtablePrefillSaved', $nb_saved), null, 'mesgs');
+    header("Location: ".$_SERVER['PHP_SELF']);
+    exit;
+}
+
+
 /*
  * View
  */
@@ -298,106 +411,6 @@ $resql_check = $db->query($sql_check);
 if (!$resql_check || $db->num_rows($resql_check) == 0) {
     setEventMessages("Table des matières premières non trouvée. Désactivez et réactivez le module pour la créer.", null, 'errors');
     dol_syslog("admin/setup.php - Table llx_planningproduction_matieres does not exist", LOG_ERR);
-}
-
-// Traitement des actions sur les matières premières
-if ($action == 'add_matiere' && $user->hasRight('planningproduction', 'planning', 'write')) {
-    $new_code_mp = GETPOST('new_code_mp', 'alphanohtml');
-    $new_stock = GETPOST('new_stock', 'alphanohtml');
-    $new_lien = GETPOST('new_lien', 'alphanohtml');
-
-    // Debug des valeurs reçues
-    dol_syslog("add_matiere - new_code_mp: '".$new_code_mp."', new_stock: '".$new_stock."'", LOG_DEBUG);
-
-    if (!empty($new_code_mp) && $new_stock !== '' && is_numeric($new_stock)) {
-        $result = $planning->createMatiere($new_code_mp, (float)$new_stock, $new_lien);
-        if ($result > 0) {
-            // Filtre Airtable (seulement si les listes étaient actives dans le formulaire)
-            if (GETPOST('atfnew_present', 'int')) {
-                if ($planning->updateMatiereAirtableFiltre($result, planningproductionGetPostedAirtableFilter('atfnew_')) < 0) {
-                    setEventMessages($langs->trans('AirtableFilterSaveError'), null, 'warnings');
-                }
-            }
-            setEventMessages("Matière première ajoutée avec succès", null, 'mesgs');
-            header("Location: ".$_SERVER['PHP_SELF']);
-            exit;
-        } else {
-            setEventMessages("Erreur lors de l'ajout (code déjà existant ?)", null, 'errors');
-        }
-    } else {
-        setEventMessages("Code MP ou stock invalide. Code MP: '".$new_code_mp."', Stock: '".$new_stock."'", null, 'errors');
-    }
-}
-
-if ($action == 'delete_matiere' && $user->hasRight('planningproduction', 'planning', 'write')) {
-    $rowid = GETPOST('rowid', 'int');
-    if ($rowid > 0) {
-        $result = $planning->deleteMatiere($rowid);
-        if ($result > 0) {
-            setEventMessages("Matière première supprimée avec succès", null, 'mesgs');
-            header("Location: ".$_SERVER['PHP_SELF']);
-            exit;
-        } else {
-            setEventMessages("Erreur lors de la suppression", null, 'errors');
-        }
-    } else {
-        setEventMessages("ID invalide", null, 'errors');
-    }
-}
-
-if ($action == 'update_matiere' && $user->hasRight('planningproduction', 'planning', 'write')) {
-    $rowid = GETPOST('rowid', 'int');
-    $code_mp = GETPOST('code_mp', 'alphanohtml');
-    $stock = GETPOST('stock', 'alphanohtml');
-    $lien = GETPOST('lien', 'alphanohtml');
-
-    // Debug des valeurs reçues
-    dol_syslog("update_matiere - rowid: '".$rowid."', code_mp: '".$code_mp."', stock: '".$stock."'", LOG_DEBUG);
-
-    if ($rowid > 0 && !empty($code_mp) && $stock !== '' && is_numeric($stock)) {
-        $result = $planning->updateMatiere($rowid, $code_mp, (float)$stock, $lien);
-        if ($result > 0) {
-            // Filtre Airtable : si les listes étaient désactivées (token absent, Airtable injoignable), le filtre enregistré est conservé
-            if (GETPOST('atfedit_present', 'int')) {
-                if ($planning->updateMatiereAirtableFiltre($rowid, planningproductionGetPostedAirtableFilter('atfedit_')) < 0) {
-                    setEventMessages($langs->trans('AirtableFilterSaveError'), null, 'warnings');
-                }
-            }
-            setEventMessages("Matière première mise à jour avec succès", null, 'mesgs');
-            header("Location: ".$_SERVER['PHP_SELF']);
-            exit;
-        } else {
-            setEventMessages("Erreur lors de la mise à jour (code déjà existant ?)", null, 'errors');
-        }
-    } else {
-        $debug_msg = "Paramètres invalides - ";
-        $debug_msg .= "rowid: '".$rowid."' (".(($rowid > 0) ? 'OK' : 'KO')."), ";
-        $debug_msg .= "code_mp: '".$code_mp."' (".(!empty($code_mp) ? 'OK' : 'KO')."), ";
-        $debug_msg .= "stock: '".$stock."' (".(($stock !== '' && is_numeric($stock)) ? 'OK' : 'KO').")";
-        setEventMessages($debug_msg, null, 'errors');
-    }
-}
-
-// Pré-remplissage en masse : enregistrement après validation par l'admin
-if ($action == 'prefill_all_confirm' && $user->hasRight('planningproduction', 'planning', 'write')) {
-    $selected_rowids = GETPOST('prefill_rowid', 'array');
-    $nb_saved = 0;
-    foreach ($matieres as $m) {
-        if (!in_array((string) $m['rowid'], array_map('strval', (array) $selected_rowids), true)) {
-            continue;
-        }
-        // Ne jamais écraser un filtre déjà renseigné
-        if (!empty($m['airtable_filtre']) || empty($m['lien'])) {
-            continue;
-        }
-        $proposed = $airtable->parseInterfaceLink($m['lien']);
-        if ($proposed !== false && $planning->updateMatiereAirtableFiltre($m['rowid'], $proposed) > 0) {
-            $nb_saved++;
-        }
-    }
-    setEventMessages($langs->trans('AirtablePrefillSaved', $nb_saved), null, 'mesgs');
-    header("Location: ".$_SERVER['PHP_SELF']);
-    exit;
 }
 
 // Choix Airtable pour les listes du filtre (via le cache) ; false si non configuré ou injoignable
