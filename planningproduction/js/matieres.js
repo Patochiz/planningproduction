@@ -644,6 +644,12 @@ function renderAirtableSummaryInner() {
         return `<span class="airtable-summary-text" style="color: #888;">Airtable non configuré</span>`;
     }
 
+    // Matières sans filtre Airtable : jamais comparées
+    const nbSansFiltre = matieresData.filter(m => m.airtable_status === 'no_filter').length;
+    if (matieresData.length > 0 && nbSansFiltre === matieresData.length) {
+        return `<span class="airtable-summary-text airtable-summary-error">⚠️ Aucune matière comparée : filtre Airtable non configuré (Configuration du module → Modifier une matière, ou « Pré-remplir tous les filtres vides depuis les liens »)</span>`;
+    }
+
     let text;
     let cls;
     if (!info.fetched_at && info.error) {
@@ -667,6 +673,9 @@ function renderAirtableSummaryInner() {
         }
         if (info.error) {
             text += ` <small style="color: #c0392b;">${escapeHtml(info.error)}</small>`;
+        }
+        if (nbSansFiltre > 0) {
+            text += ` <small style="color: #888;">(${nbSansFiltre} matière(s) sans filtre, non comparée(s))</small>`;
         }
     }
     return `<span class="airtable-summary-text ${cls}">${text}</span> ${button}`;
